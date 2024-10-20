@@ -1,10 +1,10 @@
-
+import styles from "./ToolPage.module.css"
 
 export default function ToolPage({title, children}) {
     return (
-        <div>
-            <h1>{title}</h1>
-            <div>
+        <div className={styles.page}>
+            <div className={styles.title}>{title}</div>
+            <div className={styles.content}>
                 {children}
             </div>
         </div>

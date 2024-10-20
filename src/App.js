@@ -3,9 +3,7 @@ import MapToolPage from "./tools/map/MapToolPage";
 
 function App() {
   return (
-    <div className="App">
-        <MapToolPage/>
-    </div>
+      <MapToolPage/>
   );
 }
 
