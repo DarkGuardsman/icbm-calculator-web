@@ -1,0 +1,17 @@
+.content {
+  display: flex;
+  flex-direction: row;
+}
+
+.map {
+  flex-grow: 1;
+  border: 1px black solid;
+  background-color: beige;
+  padding: 15px;
+}
+
+.tools {
+  min-width: 500px;
+  display: flex;
+  flex-direction: column;
+}

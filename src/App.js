@@ -1,11 +1,10 @@
-import logo from './logo.svg';
 import './App.css';
-import GraphRender from "./graph/GraphRender";
+import MapToolPage from "./tools/map/MapToolPage";
 
 function App() {
   return (
     <div className="App">
-     <GraphRender></GraphRender>
+        <MapToolPage/>
     </div>
   );
 }

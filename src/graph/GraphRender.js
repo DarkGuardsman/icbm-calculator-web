@@ -27,30 +27,17 @@ const tileSet = {
 
 const chunkBounds = 16;
 
-export default function GraphPaper({gridCount = chunkBounds * 5, gridRenderSize = 10}) {
+/**
+ *
+ * @param tiles {number[][]}
+ * @param gridSizeX {number}
+ * @param gridSizeY {number}
+ * @param gridRenderSize {number}
+ * @returns {Element}
+ * @constructor
+ */
+export default function GraphPaper({tiles, gridSizeX, gridSizeY, gridRenderSize = 10}) {
     const canvasRef = useRef(null);
-
-    const tiles = useMemo(() => {
-        const tiles = [];
-
-        // Fill with air
-        fillTiles(tiles, 0, 0, gridCount, gridCount, () => AIR);
-
-        // Center point
-        const center = Math.floor(gridCount / 2);
-
-        //random island
-        const islandSize = 32;
-        const islandCenter = Math.floor(islandSize/2);
-        fillTiles(tiles, center - islandCenter, center - islandCenter, islandSize, islandSize, () => Math.random() > 0.8 ? DIRT : GRASS);
-
-        const islandSize2 = 16;
-        const islandCenter2 = Math.floor(islandSize2/2);
-        fillTiles(tiles, center - islandCenter2, center - islandCenter2, islandSize2, islandSize2, () => STONE);
-
-
-        return tiles;
-    }, [gridCount]);
 
     useEffect(() => {
         const canvas = canvasRef.current;
@@ -59,12 +46,14 @@ export default function GraphPaper({gridCount = chunkBounds * 5, gridRenderSize 
         const width = canvas.width;
         const height = canvas.height;
 
+        // TODO eventually draw deltas when we do change sets for faster render times
+
         drawTiles(ctx, width, height, gridRenderSize, tiles);
         drawGrid(ctx, width, height, gridRenderSize);
 
-    }, [gridRenderSize, tiles]);
+    }, [gridSizeX, gridSizeY, gridRenderSize, tiles]);
 
-    return <canvas ref={canvasRef} width={gridCount * gridRenderSize} height={gridCount * gridRenderSize}/>;
+    return <canvas ref={canvasRef} width={gridSizeX * gridRenderSize} height={gridSizeY * gridRenderSize}/>;
 }
 
 function drawTiles(ctx, width, height, gridRenderSize, tiles) {
