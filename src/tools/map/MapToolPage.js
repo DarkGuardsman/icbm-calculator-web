@@ -3,10 +3,11 @@ import GraphRender from "../../graph/GraphRender";
 import {useState} from "react";
 import styles from "./MapToolPage.module.css";
 import NumericIncrementer from "../../components/incrementer/NumericIncrementer";
+import {CHUNK_SIZE} from "../../Consts";
 
 export default function MapToolPage() {
-    const [sizeX, setSizeX] = useState(16 * 5);
-    const [sizeY, setSizeY] = useState(16 * 5);
+    const [sizeX, setSizeX] = useState(CHUNK_SIZE * 4);
+    const [sizeY, setSizeY] = useState(CHUNK_SIZE * 4);
     const [tiles, setTiles] = useState([]);
 
 
@@ -24,19 +25,19 @@ export default function MapToolPage() {
                     <div>
                         <div>Map Properties</div>
                         <div>
-                            <div>Size X | chunk(s): {sizeX / 16}</div>
+                            <div>Size X | chunk(s): {sizeX / CHUNK_SIZE}</div>
                             <NumericIncrementer
                                 value={sizeX}
                                 setValue={setSizeX}
-                                increments={[1, 16]}
+                                increments={[1, CHUNK_SIZE]}
                             />
                         </div>
                         <div>
-                            <div>Size Y | chunk(s): {sizeY / 16}</div>
+                            <div>Size Y | chunk(s): {sizeY / CHUNK_SIZE}</div>
                             <NumericIncrementer
                                 value={sizeY}
                                 setValue={setSizeY}
-                                increments={[1, 16]}
+                                increments={[1, CHUNK_SIZE]}
                             />
                         </div>
                     </div>
