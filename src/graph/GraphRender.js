@@ -51,7 +51,7 @@ function drawGrid(ctx, width, height, gridRenderSize) {
 
     let count = 0;
     for (let x = 0; x <= width; x += gridRenderSize) {
-        ctx.strokeStyle = (count++ % CHUNK_SIZE !== 0) ? 'lightgrey' : 'black'; //TODO make line space configurable in UI
+        ctx.strokeStyle = (count++ % CHUNK_SIZE !== 0) ? 'rgb(27,27,27)' : 'grey'; //TODO make line space configurable in UI
         ctx.beginPath();
         ctx.moveTo(x, 0);
         ctx.lineTo(x, height);
@@ -60,7 +60,7 @@ function drawGrid(ctx, width, height, gridRenderSize) {
 
     count = 0;
     for (let y = 0; y <= height; y += gridRenderSize) {
-        ctx.strokeStyle = y % (count++ % CHUNK_SIZE !== 0) === 0 ? 'lightgrey' : 'black';
+        ctx.strokeStyle = y % (count++ % CHUNK_SIZE !== 0) === 0 ? 'rgb(27,27,27)' : 'grey';
         ctx.beginPath();
         ctx.moveTo(0, y);
         ctx.lineTo(width, y);
