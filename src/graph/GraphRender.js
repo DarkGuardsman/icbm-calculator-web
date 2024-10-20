@@ -1,4 +1,10 @@
 import React, {useEffect, useMemo, useRef} from 'react';
+import {fillTiles} from "../funcs/TileFuncs";
+
+const AIR = 0;
+const DIRT = 1;
+const STONE = 2;
+const GRASS = 3;
 
 const tileSet = {
     0: {
@@ -12,6 +18,10 @@ const tileSet = {
     2: {
         id: 'minecraft:stone',
         color: 'rgb(168,172,172)'
+    },
+    3: {
+        id: 'minecraft:grass',
+        color: 'rgb(56,193,56)'
     }
 }
 
@@ -24,24 +34,20 @@ export default function GraphPaper({gridCount = chunkBounds * 5, gridRenderSize 
         const tiles = [];
 
         // Fill with air
-        for (let y = 0; y < gridCount; y++) {
-            tiles.push([]);
-            for (let x = 0; x < gridCount; x++) {
-                tiles[y][x] = 0;
-            }
-        }
+        fillTiles(tiles, 0, 0, gridCount, gridCount, () => AIR);
 
         // Center point
         const center = Math.floor(gridCount / 2);
 
         //random island
-        const islandSize = 35;
-        const islandCenter = Math.floor(islandSize/2)
-        for (let y = 0; y < islandSize; y++) {
-            for (let x = 0; x < islandSize; x++) {
-                tiles[y + center - islandCenter][x + center - islandCenter] = Math.random() > 0.3 ? 1 : 2;
-            }
-        }
+        const islandSize = 32;
+        const islandCenter = Math.floor(islandSize/2);
+        fillTiles(tiles, center - islandCenter, center - islandCenter, islandSize, islandSize, () => Math.random() > 0.8 ? DIRT : GRASS);
+
+        const islandSize2 = 16;
+        const islandCenter2 = Math.floor(islandSize2/2);
+        fillTiles(tiles, center - islandCenter2, center - islandCenter2, islandSize2, islandSize2, () => STONE);
+
 
         return tiles;
     }, [gridCount]);
@@ -56,7 +62,7 @@ export default function GraphPaper({gridCount = chunkBounds * 5, gridRenderSize 
         drawTiles(ctx, width, height, gridRenderSize, tiles);
         drawGrid(ctx, width, height, gridRenderSize);
 
-    }, [gridRenderSize]);
+    }, [gridRenderSize, tiles]);
 
     return <canvas ref={canvasRef} width={gridCount * gridRenderSize} height={gridCount * gridRenderSize}/>;
 }
