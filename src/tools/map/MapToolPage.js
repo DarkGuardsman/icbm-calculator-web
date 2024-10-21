@@ -4,6 +4,7 @@ import {useState} from "react";
 import styles from "./MapToolPage.module.css";
 import NumericIncrementer from "../../components/incrementer/NumericIncrementer";
 import {CHUNK_SIZE} from "../../Consts";
+import {fillTiles} from "../../funcs/TileFuncs";
 
 export default function MapToolPage() {
     const [sizeX, setSizeX] = useState(CHUNK_SIZE * 5);
@@ -25,8 +26,7 @@ export default function MapToolPage() {
                         rate: 0.25
                     },
                     {
-                        id: 3,
-                        rate: 0.75
+                        id: 3
                     }
                 ]
             }
@@ -34,8 +34,25 @@ export default function MapToolPage() {
     ]);
 
     const generateMap = () => {
-        setTiles([]);
+        const tiles = [];
         setHasRun(false);
+        fillTiles(tiles, 0, 0, sizeX, sizeY, () => 0);
+        modifiers.forEach((modifier) => {
+            if(modifier.tool === "generate-box") {
+                fillTiles(tiles, modifier.args.x, modifier.args.y, modifier.args.width, modifier.args.height, () => {
+                    const possibleTiles = modifier.args.tiles;
+                    if(possibleTiles.length > 1) {
+                        for (let i = 0; i < possibleTiles.length - 1; i++) {
+                            if (Math.random() > possibleTiles[i].rate) {
+                                return possibleTiles[i].id;
+                            }
+                        }
+                    }
+                    return possibleTiles[modifier.args.tiles.length - 1].id
+                })
+            }
+        });
+        setTiles(tiles);
     };
 
     const applyModifiers = (modifier, index) => {

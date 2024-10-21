@@ -34,17 +34,31 @@ function drawTiles(ctx, width, height, gridRenderSize, tiles) {
 
     for (let y = 0; y < tiles.length; y++) {
         const row = tiles[y];
-        for (let x = 0; x < row.length; x++) {
-            const tile = TILE_SET[row[x]];
-            ctx.fillStyle = tile.color;
-            ctx.fillRect(
-                x * gridRenderSize,
-                y * gridRenderSize,
-                 gridRenderSize,
-                gridRenderSize
-            );
+        if(row !== null && row !== undefined) {
+            for (let x = 0; x < row.length; x++) {
+                drawTile(ctx, x, y, gridRenderSize, row[x]);
+            }
         }
     }
+}
+
+function drawTile(ctx, x, y, gridRenderSize, tileId) {
+    if(tileId === null || tileId === undefined) {
+        return;
+    }
+
+    const tile = TILE_SET[tileId];
+    if(tile === null || tile === undefined) {
+        return;
+    }
+
+    ctx.fillStyle = tile.color;
+    ctx.fillRect(
+        x * gridRenderSize,
+        y * gridRenderSize,
+        gridRenderSize,
+        gridRenderSize
+    );
 }
 
 function drawGrid(ctx, width, height, gridRenderSize) {
