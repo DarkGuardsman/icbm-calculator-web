@@ -1,5 +1,6 @@
 import React, {useEffect, useRef} from 'react';
-import {CHUNK_SIZE, TILE_SET} from "../Consts";
+import {TILE_ID_TO_OBJ} from "../common/Tiles";
+import {CHUNK_SIZE} from "../common/Consts";
 
 /**
  *
@@ -47,7 +48,7 @@ function drawTile(ctx, x, y, gridRenderSize, tileId) {
         return;
     }
 
-    const tile = TILE_SET[tileId];
+    const tile = TILE_ID_TO_OBJ[tileId];
     if(tile === null || tile === undefined) {
         return;
     }

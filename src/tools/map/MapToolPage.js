@@ -3,8 +3,10 @@ import GraphRender from "../../graph/GraphRender";
 import {useState} from "react";
 import styles from "./MapToolPage.module.css";
 import NumericIncrementer from "../../components/incrementer/NumericIncrementer";
-import {CHUNK_SIZE} from "../../Consts";
+import {TILE_AIR} from "../../common/Tiles";
 import {fillTiles} from "../../funcs/TileFuncs";
+import BoxModifier from "../modifiers/box/BoxModifier";
+import {CHUNK_SIZE} from "../../common/Consts";
 
 export default function MapToolPage() {
     const [sizeX, setSizeX] = useState(CHUNK_SIZE * 5);
@@ -36,12 +38,12 @@ export default function MapToolPage() {
     const generateMap = () => {
         const tiles = [];
         setHasRun(false);
-        fillTiles(tiles, 0, 0, sizeX, sizeY, () => 0);
+        fillTiles(tiles, 0, 0, sizeX, sizeY, () => TILE_AIR.index);
         modifiers.forEach((modifier) => {
-            if(modifier.tool === "generate-box") {
+            if (modifier.tool === "generate-box") {
                 fillTiles(tiles, modifier.args.x, modifier.args.y, modifier.args.width, modifier.args.height, () => {
                     const possibleTiles = modifier.args.tiles;
-                    if(possibleTiles.length > 1) {
+                    if (possibleTiles.length > 1) {
                         for (let i = 0; i < possibleTiles.length - 1; i++) {
                             if (Math.random() > possibleTiles[i].rate) {
                                 return possibleTiles[i].id;
@@ -57,7 +59,7 @@ export default function MapToolPage() {
 
     const applyModifiers = (modifier, index) => {
         setModifiers(modifiers.map((oldModifier, i) => {
-            if(i === index) {
+            if (i === index) {
                 return modifier;
             }
             return oldModifier;
@@ -122,44 +124,13 @@ export default function MapToolPage() {
 }
 
 function buildModifier(modifier, index, applyChanges) {
-    if(modifier.tool === "generate-box") {
-        return (
-            <div key={"modifier-" + index} className={styles.toolSection}>
-                <div className={styles.toolTitle}>Generate: box</div>
-                <div>
-                    <div>Position X</div>
-                    <NumericIncrementer
-                        value={modifier.args.x}
-                        setValue={(v) => applyChanges(({...modifier, args: {...modifier.args, x: v}}), index)}
-                        increments={[1, CHUNK_SIZE]}
-                    />
-                </div>
-                <div>
-                    <div>Position Y</div>
-                    <NumericIncrementer
-                        value={modifier.args.y}
-                        setValue={(v) => applyChanges(({...modifier, args: {...modifier.args, y: v}}), index)}
-                        increments={[1, CHUNK_SIZE]}
-                    />
-                </div>
-                <div>
-                    <div>Size X</div>
-                    <NumericIncrementer
-                        value={modifier.args.width}
-                        setValue={(v) => applyChanges(({...modifier, args: {...modifier.args, width: v}}), index)}
-                        increments={[1, CHUNK_SIZE]}
-                    />
-                </div>
-                <div>
-                    <div>Size Y</div>
-                    <NumericIncrementer
-                        value={modifier.args.height}
-                        setValue={(v) => applyChanges(({...modifier, args: {...modifier.args, height: v}}), index)}
-                        increments={[1, CHUNK_SIZE]}
-                    />
-                </div>
-            </div>
-        )
+    if (modifier.tool === "generate-box") {
+        return <BoxModifier
+            key={"modifier-" + index}
+            modifier={modifier}
+            applyChanges={applyChanges}
+            index={index}
+        />
     }
     return (
         <div key={"modifier-" + index} className={styles.addModifier}>

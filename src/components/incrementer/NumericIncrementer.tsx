@@ -1,18 +1,15 @@
 import {useMemo} from "react";
 
-/**
- * Input with increment/decrement arrows
- *
- * @param value {number}
- * @param setValue {function(number): void}
- * @param increments {number[]}
- * @returns {JSX.Element}
- * @constructor
- */
-export default function NumericIncrementer({value, setValue, increments = [1]}) {
+export interface NumericIncrementerProps {
+    value: number;
+    setValue: (num: number) => void;
+    increments: number[];
+}
 
-    const reversedIncrement = useMemo(() => increments.toReversed(), [increments]);
-    const handleChangeX = (event) => {
+export default function NumericIncrementer({value, setValue, increments = [1]}: NumericIncrementerProps) {
+
+    const reversedIncrement = useMemo(() => increments.slice().reverse(), [increments]);
+    const handleChangeX = (event: { target: { value: string; }; }) => {
         const value = Math.floor(Number.parseFloat(event.target.value));
         setValue(value);
     }

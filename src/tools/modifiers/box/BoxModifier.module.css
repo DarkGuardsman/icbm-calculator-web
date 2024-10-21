@@ -1,0 +1,16 @@
+.tileEntry {
+    display: flex;
+    flex-direction: row;
+}
+
+.tileSelect {
+    flex-grow: 1;
+}
+
+.tileRate {
+    padding: 5px;
+    width: 100px;
+    input {
+        width: 90%;
+    }
+}
