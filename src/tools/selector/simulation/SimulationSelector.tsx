@@ -40,7 +40,10 @@ export default function SimulationSelector({tiles, setTile, addDot, addLine, onR
 
         onRun();
         if(testToRun.id === "minecraft:tnt") {
-            tntBlast(16, 16, 6, true, tiles, setTile, addDot, addLine);
+            tntBlast(16, 16, tiles, setTile, addDot, addLine, {
+                rayEnergy: 6,
+                normalize: true //TODO add controls to UI
+            });
         }
         else if (testToRun.id === "random:fill") {
             for (let y = 0; y < tiles.length; y++) {
