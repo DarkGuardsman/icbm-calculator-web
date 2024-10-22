@@ -3,6 +3,8 @@ import {DebugDotData, DebugLineData} from "../../graph/GraphRender";
 export interface TNTBlastConfig {
     rayEnergy?: number;
     normalize?: boolean;
+    stepEnergyCost?: number;
+    stepSize?: number
 }
 
 export default function tntBlast(cx: number, cz: number,
@@ -14,6 +16,8 @@ export default function tntBlast(cx: number, cz: number,
 ) {
     const normalize = config?.normalize ? config?.normalize : true;
     const rayStartEnergy = config?.rayEnergy ? config.rayEnergy : 6;
+    const stepEnergyCost = config?.stepEnergyCost ? config.stepEnergyCost : 0.75;
+    const stepSize = config?.stepSize ? config.stepSize : 0.3;
 
     addDot({
         x: cx, y: cz,
@@ -50,14 +54,14 @@ export default function tntBlast(cx: number, cz: number,
                 //double y = this.location.y();
                 let z = cz;
 
-                //final Color lineColor = Utils.randomColor();
+                //final Color lineColor = Utils.randomColor();  //TODO random color
 
-                for (let step = 0.3; radialEnergy > 0.0; radialEnergy -= step * 0.75) {
+                for (let step = stepSize; radialEnergy > 0.0; radialEnergy -= step * stepEnergyCost) {
                     addDot({
                         x: x + xStep * step,
                         y: z + zStep * step,
-                        size: 0.1,
-                        color: 'blue'
+                        size: 0.11,
+                        color: 'blue' //TODO random color
                     });
                     addLine({
                         startX: x,
@@ -65,7 +69,7 @@ export default function tntBlast(cx: number, cz: number,
                         endX: x + xStep * step,
                         endY: z + zStep * step,
                         size: 0.05,
-                        color: 'red'
+                        color: 'red' //TODO random color
                     });
 
                     //Iterate location
