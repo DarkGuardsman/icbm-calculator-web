@@ -26,11 +26,12 @@ export interface SimulationSelectorProps {
     setTile: (x: number, y: number, tileId: number) => void;
     addDot: (dot: DebugDotData) => void;
     addLine: (line: DebugLineData) => void;
+    addHeatMapHit: (x: number, y: number, hits: number) => void;
     onRun: () => void;
     hasRun: boolean;
 }
 
-export default function SimulationSelector({tiles, setTile, addDot, addLine, onRun, hasRun}: SimulationSelectorProps) {
+export default function SimulationSelector({tiles, setTile, addDot, addLine, addHeatMapHit, onRun, hasRun}: SimulationSelectorProps) {
     const [testToRun, setTestToRun] = useState<TestTypeEntry | null | undefined>(testOptions[0]);
 
     const runSimulation = () => {
@@ -40,7 +41,7 @@ export default function SimulationSelector({tiles, setTile, addDot, addLine, onR
 
         onRun();
         if(testToRun.id === "minecraft:tnt") {
-            tntBlast(16, 16, tiles, setTile, addDot, addLine, {
+            tntBlast(16, 16, tiles, setTile, addDot, addLine, addHeatMapHit, {
                 rayEnergy: 6,
                 normalize: true //TODO add controls to UI
             });

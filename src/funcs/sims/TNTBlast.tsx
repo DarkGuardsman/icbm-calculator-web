@@ -12,6 +12,7 @@ export default function tntBlast(cx: number, cz: number,
                                  setTile: (x: number, y: number, tileId: number) => void,
                                  addDot: (dot: DebugDotData) => void,
                                  addLine: (line: DebugLineData) => void,
+                                 addHeatMapHit: (x: number, y: number, hits: number) => void,
                                  config?: TNTBlastConfig
 ) {
     const normalize = config?.normalize ? config?.normalize : true;
@@ -57,6 +58,7 @@ export default function tntBlast(cx: number, cz: number,
                 //final Color lineColor = Utils.randomColor();  //TODO random color
 
                 for (let step = stepSize; radialEnergy > 0.0; radialEnergy -= step * stepEnergyCost) {
+
                     addDot({
                         x: x + xStep * step,
                         y: z + zStep * step,
@@ -75,7 +77,10 @@ export default function tntBlast(cx: number, cz: number,
                     //Iterate location
                     x += xStep * step;
                     //y += yStep * step;
-                    z += zStep * step;
+                    z += zStep * step
+
+                    // Track ray trace heat
+                    addHeatMapHit(x, z, 1);
                 }
             }
         }

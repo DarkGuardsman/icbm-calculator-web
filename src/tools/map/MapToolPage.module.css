@@ -25,6 +25,13 @@
     flex-direction: column;
 }
 
+.renderSizeControls {
+    display: flex;
+    flex-direction: row;
+    gap: 5px;
+    padding-left: 5px;
+}
+
 .map {
     flex-grow: 1;
 

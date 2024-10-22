@@ -3,7 +3,7 @@ import GraphRender from "../../graph/GraphRender";
 import {useState} from "react";
 import styles from "./MapToolPage.module.css";
 import NumericIncrementer from "../../components/incrementer/NumericIncrementer";
-import {TILE_AIR, TILE_SET} from "../../common/Tiles";
+import {TILE_AIR} from "../../common/Tiles";
 import {fillTiles} from "../../funcs/TileFuncs";
 import BoxModifier from "../modifiers/box/BoxModifier";
 import {CHUNK_SIZE} from "../../common/Consts";
@@ -20,28 +20,12 @@ export default function MapToolPage() {
     const [dots, setDots] = useState([]);
 
     const [edits, setEdits] = useState([]);
-    const [hasRun, setHasRun] = useState(false);
+    const [heatMapHits, setHeatMapHits] = useState([]);
 
-    const [modifiers, setModifiers] = useState([
-        {
-            tool: "generate-box",
-            args: {
-                x: 10,
-                y: 15,
-                width: 40,
-                height: 30,
-                tiles: [
-                    {
-                        id: TILE_SET.find(t => t.key.endsWith("dirt")).index,
-                        rate: 0.25
-                    },
-                    {
-                        id: TILE_SET.find(t => t.key.endsWith("grass")).index,
-                    }
-                ]
-            }
-        }
-    ]);
+    const [hasRun, setHasRun] = useState(false);
+    const [showHeatMap, setShowHeatMap] = useState(false);
+
+    const [modifiers, setModifiers] = useState([]);
 
     // TODO convert tile matrix into an object with a custom hook for easier management
     //          have object contain a setter/getter for each tile
@@ -80,6 +64,15 @@ export default function MapToolPage() {
         setLines(prev => [...prev, line]);
     };
 
+    const addHeatMapHit = (x, y, hits) => {
+        setHeatMapHits(prev => {
+            const newHeatMap = prev === undefined ? [] : [...prev];
+            newHeatMap[y] = newHeatMap[y] === undefined ? [] : [...newHeatMap[y]];
+            newHeatMap[y][x] = newHeatMap[y][x] === undefined ? hits: newHeatMap[y][x] + hits;
+            return newHeatMap;
+        });
+    }
+
     const generateMap = () => {
         const tiles = [];
         setHasRun(false);
@@ -100,6 +93,9 @@ export default function MapToolPage() {
             }
         });
         setTiles(tiles);
+        setDots([]);
+        setLines([]);
+        setEdits([]);
     };
 
     const applyModifiers = (modifier, index) => {
@@ -135,6 +131,14 @@ export default function MapToolPage() {
             <div className={styles.content}>
                 <div className={styles.contentTop}>
                     <div className={styles.center}>
+                        <div className={styles.renderSizeControls}>
+                            <div>Render Size:</div>
+                            <NumericIncrementer
+                                value={renderSize}
+                                setValue={setRenderSize}
+                                increments={[5,10]}
+                            />
+                        </div>
                         <div className={styles.map}>
                             <GraphRender
                                 tiles={tiles}
@@ -143,6 +147,7 @@ export default function MapToolPage() {
                                 gridSizeX={sizeX}
                                 gridSizeY={sizeY}
                                 gridRenderSize={renderSize}
+                                heatMapHits={heatMapHits}
                             />
 
                         </div>
@@ -190,6 +195,7 @@ export default function MapToolPage() {
                         onRun={() => setHasRun(true)}
                         addDot={addDot}
                         addLine={addLine}
+                        addHeatMapHit={addHeatMapHit}
                     />
                 </div>
             </div>
