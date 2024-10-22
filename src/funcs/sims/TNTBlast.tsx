@@ -80,7 +80,7 @@ export default function tntBlast(cx: number, cz: number,
                     z += zStep * step
 
                     // Track ray trace heat
-                    addHeatMapHit(x, z, 1);
+                    addHeatMapHit(Math.floor(x), Math.floor(z), 1);
                 }
             }
         }

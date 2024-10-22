@@ -20,6 +20,7 @@ export interface DebugDotData {
 
 export interface GraphPaperProps {
     tiles: number[][];
+    heatMapHits: number[][];
     lines: DebugLineData[];
     dots: DebugDotData[];
     gridSizeX: number;
@@ -27,7 +28,7 @@ export interface GraphPaperProps {
     gridRenderSize: number;
 }
 
-export default function GraphPaper({tiles, lines, dots, gridSizeX, gridSizeY, gridRenderSize = 10}: GraphPaperProps): React.JSX.Element {
+export default function GraphPaper({tiles, lines, dots, heatMapHits, gridSizeX, gridSizeY, gridRenderSize = 10}: GraphPaperProps): React.JSX.Element {
     const canvasRef = useRef<HTMLCanvasElement>(null);
 
     useEffect(() => {
@@ -48,6 +49,7 @@ export default function GraphPaper({tiles, lines, dots, gridSizeX, gridSizeY, gr
 
         drawTiles(ctx, width, height, gridRenderSize, tiles);
         drawGrid(ctx, width, height, gridRenderSize);
+        drawHeatMap(ctx, width, height, gridRenderSize, heatMapHits);
         drawLines(ctx, width, height, gridRenderSize, lines);
         drawDots(ctx, width, height, gridRenderSize, dots);
 
@@ -128,4 +130,38 @@ function drawDots(ctx: CanvasRenderingContext2D, width: number, height: number, 
         ctx.fillStyle = dot.color;
         ctx.fill();
     });
+}
+
+
+function drawHeatMap(ctx: CanvasRenderingContext2D, width: number, height: number, gridRenderSize: number, heatMapHits: number[][]) {
+
+    for (let y = 0; y < heatMapHits.length; y++) {
+        const row = heatMapHits[y];
+        if(row !== null && row !== undefined) {
+            for (let x = 0; x < row.length; x++) {
+                drawHeatTile(ctx, x, y, gridRenderSize, row[x]);
+            }
+        }
+    }
+}
+
+function drawHeatTile(ctx: CanvasRenderingContext2D, x: number, y: number, gridRenderSize: number, hits: number) {
+    if(hits === null || hits === undefined) {
+        return;
+    }
+
+    console.log(hits);
+    const val = Math.min(20, Math.max(0, hits)) * 5 ;
+    const r = Math.floor((255 * val) / 100),
+        g = Math.floor((255 * (100 - val)) / 100) - 150,
+        b = 0;
+
+
+    ctx.fillStyle = `rgb(${r},${g},${b})`;
+    ctx.fillRect(
+        x * gridRenderSize,
+        y * gridRenderSize,
+        gridRenderSize,
+        gridRenderSize
+    );
 }
