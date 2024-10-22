@@ -14,3 +14,9 @@
         width: 90%;
     }
 }
+
+.tileList {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}

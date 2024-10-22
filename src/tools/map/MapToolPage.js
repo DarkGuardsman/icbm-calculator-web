@@ -100,37 +100,37 @@ export default function MapToolPage() {
                         </div>
                     </div>
                     <div className={styles.right}>
-                        <div className={styles.toolSection}>
-                            <div className={styles.toolTitle}>Map Properties</div>
-                            <div>
-                                <div>Size X | chunk(s): {sizeX / CHUNK_SIZE}</div>
-                                <NumericIncrementer
-                                    value={sizeX}
-                                    setValue={setSizeX}
-                                    increments={[1, CHUNK_SIZE]}
-                                />
-                            </div>
-                            <div>
-                                <div>Size Y | chunk(s): {sizeY / CHUNK_SIZE}</div>
-                                <NumericIncrementer
-                                    value={sizeY}
-                                    setValue={setSizeY}
-                                    increments={[1, CHUNK_SIZE]}
-                                />
-                            </div>
+                        <div className={`${styles.toolSection} ${styles.actions}`}>
+                            <button onClick={generateMap}>
+                                {hasRun ? "RESET" : "GENERATE"}
+                            </button>
                         </div>
-                        <div className={styles.modifiers}>
+                        <div className={styles.toolList}>
+                            <div className={styles.toolSection}>
+                                <div className={styles.toolTitle}>Map Properties</div>
+                                <div>
+                                    <div>Size X | chunk(s): {sizeX / CHUNK_SIZE}</div>
+                                    <NumericIncrementer
+                                        value={sizeX}
+                                        setValue={setSizeX}
+                                        increments={[1, CHUNK_SIZE]}
+                                    />
+                                </div>
+                                <div>
+                                    <div>Size Y | chunk(s): {sizeY / CHUNK_SIZE}</div>
+                                    <NumericIncrementer
+                                        value={sizeY}
+                                        setValue={setSizeY}
+                                        increments={[1, CHUNK_SIZE]}
+                                    />
+                                </div>
+                            </div>
                             {
                                 modifiers.map((modifier, index) => buildModifier(modifier, index, applyModifiers))
                             }
                             <div className={styles.addModifier}>
                                 <button onClick={addModifier}>Add Modifier</button>
                             </div>
-                        </div>
-                        <div className={`${styles.toolSection} ${styles.actions}`}>
-                            <button onClick={generateMap}>
-                                {hasRun ? "RESET" : "GENERATE"}
-                            </button>
                         </div>
                     </div>
                 </div>

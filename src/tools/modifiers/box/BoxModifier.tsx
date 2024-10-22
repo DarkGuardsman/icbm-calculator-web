@@ -98,7 +98,7 @@ export default function BoxModifier(props: BoxModifierProps): React.JSX.Element 
                     increments={[1, CHUNK_SIZE]}
                 />
             </div>
-            <div>
+            <div className={styles.tileList}>
                 {
                     modifier.args.tiles.map((tile, index) => (
                         <div key={"tile-" + index} className={styles.tileEntry}>
