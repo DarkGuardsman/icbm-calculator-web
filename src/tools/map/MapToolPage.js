@@ -7,11 +7,14 @@ import {TILE_AIR, TILE_SET} from "../../common/Tiles";
 import {fillTiles} from "../../funcs/TileFuncs";
 import BoxModifier from "../modifiers/box/BoxModifier";
 import {CHUNK_SIZE} from "../../common/Consts";
+import SimulationSelector from "../selector/simulation/SimulationSelector";
+
 
 export default function MapToolPage() {
     const [sizeX, setSizeX] = useState(CHUNK_SIZE * 5);
     const [sizeY, setSizeY] = useState(CHUNK_SIZE * 5);
     const [tiles, setTiles] = useState([]);
+    const [edits, setEdits] = useState([]);
     const [hasRun, setHasRun] = useState(false);
 
     const [modifiers, setModifiers] = useState([
@@ -34,6 +37,35 @@ export default function MapToolPage() {
             }
         }
     ]);
+
+    // TODO convert tile matrix into an object with a custom hook for easier management
+    //          have object contain a setter/getter for each tile
+    //          have object record changes
+    //          have object contain a method to bookmark change sections as a page with start/end  map.start("expand-1") map.end("expand-1")
+    //          as part of edits include cause by  map.setTile(x, y, tile, source)... could even have this auto page bookmarks by making source {id, page, step}
+    const setTile = (x, y, tileId) => {
+
+        // Async is a pain
+        setTiles(prev => {
+            // Duplicate array to trigger state change
+            const newTileArray = prev === undefined ? [] : [...prev];
+            newTileArray[y] = newTileArray[y] === undefined ? [] : [...newTileArray[y]];
+
+            // Record edits
+            const currentTile = newTileArray[y][x];
+            setEdits((prev) => [...prev, {
+                x,y,
+                oldTile: currentTile,
+                newTile: tileId,
+                time: new Date()
+            }]);
+
+            // Store edit
+            newTileArray[y][x] = tileId;
+
+            return newTileArray;
+        });
+    };
 
     const generateMap = () => {
         const tiles = [];
@@ -135,7 +167,12 @@ export default function MapToolPage() {
                     </div>
                 </div>
                 <div className={styles.contentBottom}>
-                    TODO test selector
+                    <SimulationSelector
+                        tiles={tiles}
+                        setTile={setTile}
+                        hasRun={hasRun}
+                        onRun={() => setHasRun(true)}
+                    />
                 </div>
             </div>
         </ToolPage>

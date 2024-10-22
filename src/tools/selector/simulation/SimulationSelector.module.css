@@ -1,0 +1,25 @@
+.testHeader {
+    display: flex;
+    flex-direction: row;
+
+    gap: 10px;
+
+    padding: 10px;
+}
+
+.testSelector {
+    width: 200px;
+    height: 40px;
+}
+
+.testDescription {
+    flex-grow: 1;
+    line-height: 40px;
+}
+
+.testRunButton {
+    button {
+        width: 150px;
+        height: 40px;
+    }
+}
