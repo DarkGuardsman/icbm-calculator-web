@@ -72,6 +72,14 @@ export default function MapToolPage() {
         });
     };
 
+    const addDot = (dot) => {
+        setDots(prev => [...prev, dot]);
+    };
+
+    const addLine = (line) => {
+        setLines(prev => [...prev, line]);
+    };
+
     const generateMap = () => {
         const tiles = [];
         setHasRun(false);
@@ -180,6 +188,8 @@ export default function MapToolPage() {
                         setTile={setTile}
                         hasRun={hasRun}
                         onRun={() => setHasRun(true)}
+                        addDot={addDot}
+                        addLine={addLine}
                     />
                 </div>
             </div>
