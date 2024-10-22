@@ -11,9 +11,14 @@ import SimulationSelector from "../selector/simulation/SimulationSelector";
 
 
 export default function MapToolPage() {
-    const [sizeX, setSizeX] = useState(CHUNK_SIZE * 5);
-    const [sizeY, setSizeY] = useState(CHUNK_SIZE * 5);
+    const [sizeX, setSizeX] = useState(CHUNK_SIZE * 2);
+    const [sizeY, setSizeY] = useState(CHUNK_SIZE * 2);
+    const [renderSize, setRenderSize] = useState(20);
+
     const [tiles, setTiles] = useState([]);
+    const [lines, setLines] = useState([]);
+    const [dots, setDots] = useState([]);
+
     const [edits, setEdits] = useState([]);
     const [hasRun, setHasRun] = useState(false);
 
@@ -125,8 +130,11 @@ export default function MapToolPage() {
                         <div className={styles.map}>
                             <GraphRender
                                 tiles={tiles}
+                                dots={dots}
+                                lines={lines}
                                 gridSizeX={sizeX}
                                 gridSizeY={sizeY}
+                                gridRenderSize={renderSize}
                             />
 
                         </div>

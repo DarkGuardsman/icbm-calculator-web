@@ -35,7 +35,10 @@ export default function SimulationSelector({tiles, setTile, onRun, hasRun}: Simu
         }
 
         onRun();
-        if (testToRun.id === "random:fill") {
+        if(testToRun.id === "minecraft:tnt") {
+
+        }
+        else if (testToRun.id === "random:fill") {
             for (let y = 0; y < tiles.length; y++) {
                 for (let x = 0; x < tiles[y].length; x++) {
                     const tileToUse = TILE_SET
