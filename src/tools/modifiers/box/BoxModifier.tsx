@@ -1,11 +1,11 @@
 import IMapModifier from "../types";
 import NumericIncrementer from "../../../components/incrementer/NumericIncrementer";
-import React, {useMemo} from "react";
+import React from "react";
 import ModifierCard from "../card/ModifierCard";
 import Select, {SingleValue} from "react-select";
 import styles from "./BoxModifier.module.css"
 import {CHUNK_SIZE} from "../../../common/Consts";
-import {TILE_ID_TO_OBJ, TILE_IDS, TILE_SET, TileData} from "../../../common/Tiles";
+import {TILE_ID_TO_OBJ, TILE_SET, TileData} from "../../../common/Tiles";
 
 export interface BoxModifierProps {
     index: number;
@@ -57,7 +57,7 @@ export default function BoxModifier(props: BoxModifierProps): React.JSX.Element 
         const tiles = [...modifier.args.tiles];
         tiles[tileIndex] = {
             ...tiles[tileIndex],
-            rate: Number.parseFloat(rate)
+            rate: Math.max(0, Math.min(1, Number.parseFloat(rate)))
         };
         setValue({...modifier.args, tiles});
     }
@@ -114,10 +114,14 @@ export default function BoxModifier(props: BoxModifierProps): React.JSX.Element 
                             </div>
                             <div className={styles.tileRate}>
                                 {
-                                    index === modifier.args.tiles.length - 1 ? <span>Default</span> : <input
-                                        value={tile.rate}
-                                        onChange={(value) => setTileRate(value.target.value, index)}
-                                    />
+                                    index === modifier.args.tiles.length - 1
+                                        ? <span>Default</span>
+                                        : <input
+                                            type={"number"}
+                                            step={0.05}
+                                            value={tile.rate !== undefined ? tile.rate : 0}
+                                            onChange={(value) => setTileRate(value.target.value, index)}
+                                        />
                                 }
                             </div>
                         </div>
