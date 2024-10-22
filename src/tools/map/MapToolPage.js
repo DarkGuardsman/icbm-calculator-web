@@ -3,7 +3,7 @@ import GraphRender from "../../graph/GraphRender";
 import {useState} from "react";
 import styles from "./MapToolPage.module.css";
 import NumericIncrementer from "../../components/incrementer/NumericIncrementer";
-import {TILE_AIR} from "../../common/Tiles";
+import {TILE_AIR, TILE_SET} from "../../common/Tiles";
 import {fillTiles} from "../../funcs/TileFuncs";
 import BoxModifier from "../modifiers/box/BoxModifier";
 import {CHUNK_SIZE} from "../../common/Consts";
@@ -24,11 +24,11 @@ export default function MapToolPage() {
                 height: 30,
                 tiles: [
                     {
-                        id: 1,
+                        id: TILE_SET.find(t => t.key.endsWith("dirt")).index,
                         rate: 0.25
                     },
                     {
-                        id: 3
+                        id: TILE_SET.find(t => t.key.endsWith("grass")).index,
                     }
                 ]
             }
@@ -64,6 +64,25 @@ export default function MapToolPage() {
             }
             return oldModifier;
         }));
+    };
+
+    const addModifier = () => {
+        const newArray = [...modifiers];
+        newArray.push({
+            tool: "generate-box",
+            args: {
+                x: 0,
+                y: 0,
+                width: 5,
+                height: 5,
+                tiles: [
+                    {
+                        id: TILE_AIR.index
+                    }
+                ]
+            }
+        });
+        setModifiers(newArray);
     };
 
     return (
@@ -105,7 +124,7 @@ export default function MapToolPage() {
                                 modifiers.map((modifier, index) => buildModifier(modifier, index, applyModifiers))
                             }
                             <div className={styles.addModifier}>
-                                <button>Add Modifier</button>
+                                <button onClick={addModifier}>Add Modifier</button>
                             </div>
                         </div>
                         <div className={`${styles.toolSection} ${styles.actions}`}>
