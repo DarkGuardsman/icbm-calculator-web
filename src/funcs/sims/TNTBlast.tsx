@@ -1,13 +1,19 @@
 import {DebugDotData, DebugLineData} from "../../graph/GraphRender";
+import {valueOr} from "../Helpers";
+import {
+    SimulationSelectorProps,
+    TestArgValues,
+    TestTypeEntry
+} from "../../tools/selector/simulation/SimulationSelector";
 
 export interface TNTBlastConfig {
     rayEnergy?: number;
     normalize?: boolean;
-    stepEnergyCost?: number;
+    stepEnergyScale?: number;
     stepSize?: number
 }
 
-export default function tntBlast(cx: number, cz: number,
+export function tntBlast(cx: number, cz: number,
                                  tiles: number[][],
                                  setTile: (x: number, y: number, tileId: number) => void,
                                  addDot: (dot: DebugDotData) => void,
@@ -15,10 +21,11 @@ export default function tntBlast(cx: number, cz: number,
                                  addHeatMapHit: (x: number, y: number, hits: number) => void,
                                  config?: TNTBlastConfig
 ) {
-    const normalize = config?.normalize ? config?.normalize : true;
-    const rayStartEnergy = config?.rayEnergy ? config.rayEnergy : 6;
-    const stepEnergyCost = config?.stepEnergyCost ? config.stepEnergyCost : 0.75;
-    const stepSize = config?.stepSize ? config.stepSize : 0.3;
+
+    const normalize = valueOr<boolean>(config?.normalize, true);
+    const rayStartEnergy = valueOr<number>(config?.rayEnergy, 6);
+    const stepEnergyScale = valueOr<number>(config?.stepEnergyScale, 0.75);
+    const stepSize = valueOr<number>(config?.stepSize, 0.3);
 
     addDot({
         x: cx, y: cz,
@@ -57,7 +64,7 @@ export default function tntBlast(cx: number, cz: number,
 
                 //final Color lineColor = Utils.randomColor();  //TODO random color
 
-                for (let step = stepSize; radialEnergy > 0.0; radialEnergy -= step * stepEnergyCost) {
+                for (let step = stepSize; radialEnergy > 0.0; radialEnergy -= step * stepEnergyScale) {
 
                     addDot({
                         x: x + xStep * step,
@@ -84,5 +91,56 @@ export default function tntBlast(cx: number, cz: number,
                 }
             }
         }
+    }
+}
+
+export const TNT_SIM_ENTRY: TestTypeEntry = {
+    id: "minecraft:tnt",
+    description: "Vanilla TNT explosive blast",
+    args: {
+        x: {
+            label: "X",
+            type: "float",
+            default: 16
+        },
+        y: {
+            label: "Y",
+            type: "float",
+            default: 16
+        },
+        energy: {
+            label: "Energy",
+            type: "float",
+            default: 6
+        },
+        normalize: {
+            label: "Normalize",
+            type: "bool",
+            default: true
+        },
+        stepSize: {
+            label: "Step Size",
+            type: "float",
+            default: 0.3
+        },
+        stepEnergyScale: {
+            label: "Step Energy Scale",
+            type: "float",
+            default: 0.75
+        }
+    },
+    runner: (props: SimulationSelectorProps, args: TestArgValues) => {
+        const x = args['x'] as number;
+        const y = args['y'] as number;
+        const energy = args['energy'] as number;
+        const stepSize = args['stepSize'] as number;
+        const stepEnergyScale = args['stepEnergyScale'] as number;
+        const normalize = args['normalize'] as boolean;
+        tntBlast(x, y, props.tiles, props.setTile, props.addDot, props.addLine, props.addHeatMapHit, {
+            rayEnergy: energy,
+            normalize,
+            stepSize,
+            stepEnergyScale
+        });
     }
 }

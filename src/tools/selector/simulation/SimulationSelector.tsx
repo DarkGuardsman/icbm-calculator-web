@@ -3,10 +3,10 @@ import Select from "react-select";
 import React, {useEffect, useMemo, useState} from "react";
 import {TILE_AIR, TILE_SET} from "../../../common/Tiles";
 import {DebugDotData, DebugLineData} from "../../../graph/GraphRender";
-import tntBlast from "../../../funcs/sims/TNTBlast";
+import {TNT_SIM_ENTRY} from "../../../funcs/sims/TNTBlast";
 import NumericIncrementer from "../../../components/incrementer/NumericIncrementer";
 
-interface TestArgs {
+export interface TestArgs {
     [key: string]: {
         label: string;
         type: 'int' | 'float' | 'bool';
@@ -14,11 +14,11 @@ interface TestArgs {
     }
 }
 
-interface TestArgValues {
+export interface TestArgValues {
     [key: string]: any
 }
 
-interface TestTypeEntry {
+export interface TestTypeEntry {
     id: string;
     description: string;
     args: TestArgs;
@@ -26,42 +26,7 @@ interface TestTypeEntry {
 }
 
 const testOptions: TestTypeEntry[] = [
-    {
-        id: "minecraft:tnt",
-        description: "Vanilla TNT explosive blast",
-        args: {
-            x: {
-                label: "X",
-                type: "int",
-                default: 16
-            },
-            y: {
-                label: "Y",
-                type: "int",
-                default: 16
-            },
-            energy: {
-                label: "Energy",
-                type: "float",
-                default: 6
-            },
-            normalize: {
-                label: "Normalize",
-                type: "bool",
-                default: true
-            }
-        },
-        runner: (props: SimulationSelectorProps, args: TestArgValues) => {
-            const x = args['x'] as number;
-            const y = args['y'] as number;
-            const energy = args['energy'] as number;
-            const normalize = args['normalize'] as boolean;
-            tntBlast(x, y, props.tiles, props.setTile, props.addDot, props.addLine, props.addHeatMapHit, {
-                rayEnergy: energy,
-                normalize
-            });
-        }
-    },
+    TNT_SIM_ENTRY,
     {
         id: "random:fill",
         description: "Fills entire map, mostly exists for testing the runtime",
@@ -112,7 +77,11 @@ export default function SimulationSelector(props: SimulationSelectorProps) {
         }
 
         props.onRun();
+        console.log(`Running ${testToRun.id} with args`, testArgs);
+        const start = performance.now();
         testToRun.runner(props, testArgs);
+        console.log(`Finished ${testToRun.id} in`, performance.now() - start);
+
     };
 
     const setTestArg = (key: string, value: any) => {
@@ -222,7 +191,7 @@ function SimulationArgsSection(props: SimulationArgsSectionProps,): React.JSX.El
                                         key={`arg-${arg.key}`}
                                         type="checkbox"
                                         checked={value}
-                                        onChange={() => setTestArg(arg.key, !value)}
+                                        onChange={(event) => setTestArg(arg.key, !value)}
                                     />
                                 </div>
                             </div>
