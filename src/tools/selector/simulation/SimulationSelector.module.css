@@ -23,3 +23,17 @@
         height: 40px;
     }
 }
+
+.testArgList {
+    display: flex;
+    flex-direction: row;
+    gap: 5px;
+}
+
+.testArg {
+    display: flex;
+    flex-direction: row;
+    padding: 5px;
+    gap: 5px;
+    border: 1px solid lightgray;
+}

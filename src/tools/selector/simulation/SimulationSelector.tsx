@@ -1,23 +1,84 @@
 import styles from "./SimulationSelector.module.css";
 import Select from "react-select";
-import {useState} from "react";
+import React, {useEffect, useMemo, useState} from "react";
 import {TILE_AIR, TILE_SET} from "../../../common/Tiles";
 import {DebugDotData, DebugLineData} from "../../../graph/GraphRender";
 import tntBlast from "../../../funcs/sims/TNTBlast";
+import NumericIncrementer from "../../../components/incrementer/NumericIncrementer";
+
+interface TestArgs {
+    [key: string]: {
+        label: string;
+        type: 'int' | 'float' | 'bool';
+        default: any;
+    }
+}
+
+interface TestArgValues {
+    [key: string]: any
+}
 
 interface TestTypeEntry {
     id: string;
     description: string;
+    args: TestArgs;
+    runner: (props: SimulationSelectorProps, args: TestArgValues) => void;
 }
 
 const testOptions: TestTypeEntry[] = [
     {
         id: "minecraft:tnt",
-        description: "Vanilla TNT explosive blast"
+        description: "Vanilla TNT explosive blast",
+        args: {
+            x: {
+                label: "X",
+                type: "int",
+                default: 16
+            },
+            y: {
+                label: "Y",
+                type: "int",
+                default: 16
+            },
+            energy: {
+                label: "Energy",
+                type: "float",
+                default: 6
+            },
+            normalize: {
+                label: "Normalize",
+                type: "bool",
+                default: true
+            }
+        },
+        runner: (props: SimulationSelectorProps, args: TestArgValues) => {
+            const x = args['x'] as number;
+            const y = args['y'] as number;
+            const energy = args['energy'] as number;
+            const normalize = args['normalize'] as boolean;
+            tntBlast(x, y, props.tiles, props.setTile, props.addDot, props.addLine, props.addHeatMapHit, {
+                rayEnergy: energy,
+                normalize
+            });
+        }
     },
     {
         id: "random:fill",
-        description: "Fills entire map, mostly exists for testing the runtime"
+        description: "Fills entire map, mostly exists for testing the runtime",
+        args: {},
+        runner: (props: SimulationSelectorProps) => {
+            for (let y = 0; y < props.tiles.length; y++) {
+                for (let x = 0; x < props.tiles[y].length; x++) {
+                    const tileToUse = TILE_SET
+                        .filter(t => !t.key.includes("air"))
+                        .find((t, i) => {
+                            const index = Math.floor(Math.random() * (TILE_SET.length - 1));
+                            return i === index;
+                        });
+                    props.setTile(x, y, tileToUse?.index === undefined ? TILE_AIR.index : tileToUse.index);
+                }
+            }
+        }
     }
 ]
 
@@ -31,51 +92,145 @@ export interface SimulationSelectorProps {
     hasRun: boolean;
 }
 
-export default function SimulationSelector({tiles, setTile, addDot, addLine, addHeatMapHit, onRun, hasRun}: SimulationSelectorProps) {
-    const [testToRun, setTestToRun] = useState<TestTypeEntry | null | undefined>(testOptions[0]);
+export default function SimulationSelector(props: SimulationSelectorProps) {
+    const [testToRun, setTestToRun] = useState<TestTypeEntry>(testOptions[0]);
+    const [testArgs, setTestArgs] = useState<TestArgValues>({});
+
+    useEffect(() => {
+        const args: TestArgValues = {};
+        if (testToRun?.args) {
+            Object.keys(testToRun.args).forEach((key) => {
+                args[key] = testToRun.args[key]?.default;
+            })
+        }
+        setTestArgs(args);
+    }, [testToRun]);
 
     const runSimulation = () => {
         if (testToRun?.id === undefined) {
             return;
         }
 
-        onRun();
-        if(testToRun.id === "minecraft:tnt") {
-            tntBlast(16, 16, tiles, setTile, addDot, addLine, addHeatMapHit, {
-                rayEnergy: 6,
-                normalize: true //TODO add controls to UI
-            });
-        }
-        else if (testToRun.id === "random:fill") {
-            for (let y = 0; y < tiles.length; y++) {
-                for (let x = 0; x < tiles[y].length; x++) {
-                    const tileToUse = TILE_SET
-                        .filter(t => !t.key.includes("air"))
-                        .find((t, i) => {
-                            const index = Math.floor(Math.random() * (TILE_SET.length - 1));
-                            return i === index;
-                        });
-                    setTile(x, y, tileToUse?.index === undefined ? TILE_AIR.index : tileToUse.index);
-                }
+        props.onRun();
+        testToRun.runner(props, testArgs);
+    };
+
+    const setTestArg = (key: string, value: any) => {
+        setTestArgs(prev => {
+            return {
+                ...prev,
+                [key]: value
             }
-        }
+        })
     };
 
     return (
-        <div className={styles.testHeader}>
-            <div className={styles.testSelector}>
-                <Select
-                    options={testOptions}
-                    value={testToRun}
-                    getOptionValue={(tile: TestTypeEntry) => tile.id}
-                    getOptionLabel={(tile: TestTypeEntry) => tile.id}
-                    onChange={(value) => setTestToRun(value)}
+        <div>
+            <div className={styles.testHeader}>
+                <div className={styles.testSelector}>
+                    <Select
+                        options={testOptions}
+                        value={testToRun}
+                        getOptionValue={(tile: TestTypeEntry) => tile.id}
+                        getOptionLabel={(tile: TestTypeEntry) => tile.id}
+                        onChange={(value) => {
+                            if (value) setTestToRun(value)
+                        }}
+                    />
+                </div>
+                <div className={styles.testDescription}>Description: {testToRun?.description}</div>
+                <div className={styles.testRunButton}>
+                    <button onClick={runSimulation} disabled={props.hasRun || testToRun?.id === undefined}>RUN</button>
+                </div>
+            </div>
+            <div className={styles.testArgList}>
+                <SimulationArgsSection
+                    {...props}
+                    testToRun={testToRun}
+                    testArgs={testArgs}
+                    setTestArg={setTestArg}
                 />
             </div>
-            <div className={styles.testDescription}>Description: {testToRun?.description}</div>
-            <div className={styles.testRunButton}>
-                <button onClick={runSimulation} disabled={hasRun || testToRun?.id === undefined}>RUN</button>
-            </div>
         </div>
+    )
+}
+
+interface SimulationArgsSectionProps extends SimulationSelectorProps {
+    testToRun: TestTypeEntry;
+    testArgs: TestArgValues
+    setTestArg: (key: string, value: any) => void
+}
+
+function SimulationArgsSection(props: SimulationArgsSectionProps,): React.JSX.Element {
+    const {testToRun, testArgs, setTestArg} = props;
+    const args = useMemo(() => {
+        const keys = Object.keys(testToRun.args);
+        return keys.map((key) => {
+            return {
+                ...testToRun.args[key],
+                key
+            }
+        })
+    }, [testToRun]);
+
+    if (args.length === 0) {
+        return <div>"No customization options"</div>
+    }
+    return (
+        <React.Fragment>
+            {
+                args.map(arg => {
+                    if (arg.type === 'int') {
+                        const value = testArgs[arg.key] as number;
+                        return (
+                            <div className={styles.testArg}>
+                                <div>{arg.label}</div>
+                                <div>
+                                    <NumericIncrementer
+                                        key={`arg-${arg.key}`}
+                                        whole={true}
+                                        value={value}
+                                        setValue={(v) => setTestArg(arg.key, v)}
+                                        increments={[1, 5]} //TODO allow customizing per arg
+                                    />
+                                </div>
+                            </div>
+                        )
+                    } else if (arg.type === 'float') {
+                        const value = testArgs[arg.key] as number;
+                        return (
+                            <div className={styles.testArg}>
+                                <div>{arg.label}</div>
+                                <div>
+                                    <NumericIncrementer
+                                        key={`arg-${arg.key}`}
+                                        whole={false}
+                                        value={value}
+                                        setValue={(v) => setTestArg(arg.key, v)}
+                                        increments={[0.1, 1]} //TODO allow customizing per arg
+                                    />
+                                </div>
+                            </div>
+                        )
+                    } else if (arg.type === 'bool') {
+                        const value = testArgs[arg.key] as boolean;
+                        return (
+                            <div className={styles.testArg}>
+                                <div>{arg.label}</div>
+                                <div>
+                                    <input
+                                        key={`arg-${arg.key}`}
+                                        type="checkbox"
+                                        checked={value}
+                                        onChange={() => setTestArg(arg.key, !value)}
+                                    />
+                                </div>
+                            </div>
+                        )
+                    }
+                    return <div>---{arg.key}---</div>
+                })
+            }
+        </React.Fragment>
     )
 }
