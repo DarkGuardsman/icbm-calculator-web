@@ -25,11 +25,18 @@
     flex-direction: column;
 }
 
-.renderSizeControls {
+.mapControls {
     display: flex;
     flex-direction: row;
     gap: 5px;
+
     padding-left: 5px;
+}
+
+.mapControlEntry {
+    display: flex;
+    flex-direction: row;
+    gap: 5px;
 }
 
 .map {

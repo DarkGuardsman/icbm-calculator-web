@@ -23,7 +23,8 @@ export default function MapToolPage() {
     const [heatMapHits, setHeatMapHits] = useState([]);
 
     const [hasRun, setHasRun] = useState(false);
-    const [showHeatMap, setShowHeatMap] = useState(false);
+    const [showHeatMap, setShowHeatMap] = useState(true);
+    const [showDebugLines, setShowDebugLines] = useState(true);
 
     const [modifiers, setModifiers] = useState([]);
 
@@ -93,6 +94,7 @@ export default function MapToolPage() {
             }
         });
         setTiles(tiles);
+        setHeatMapHits([]);
         setDots([]);
         setLines([]);
         setEdits([]);
@@ -131,23 +133,35 @@ export default function MapToolPage() {
             <div className={styles.content}>
                 <div className={styles.contentTop}>
                     <div className={styles.center}>
-                        <div className={styles.renderSizeControls}>
-                            <div>Render Size:</div>
-                            <NumericIncrementer
-                                value={renderSize}
-                                setValue={setRenderSize}
-                                increments={[5,10]}
-                            />
+                        <div className={styles.mapControls}>
+                            <div className={styles.mapControlEntry}>
+                                <div>Render Size:</div>
+                                <NumericIncrementer
+                                    value={renderSize}
+                                    setValue={setRenderSize}
+                                    increments={[5, 10]}
+                                />
+                            </div>
+                            <div className={styles.mapControlEntry}>
+                                <div>Heat Map:</div>
+                                <input type={"checkbox"} checked={showHeatMap}
+                                       onChange={() => setShowHeatMap(!showHeatMap)}/>
+                            </div>
+                            <div className={styles.mapControlEntry}>
+                                <div>Debug Lines:</div>
+                                <input type={"checkbox"} checked={showDebugLines}
+                                       onChange={() => setShowDebugLines(!showDebugLines)}/>
+                            </div>
                         </div>
                         <div className={styles.map}>
                             <GraphRender
                                 tiles={tiles}
-                                dots={dots}
-                                lines={lines}
+                                dots={showDebugLines ? dots : []}
+                                lines={showDebugLines ? lines : []}
                                 gridSizeX={sizeX}
                                 gridSizeY={sizeY}
                                 gridRenderSize={renderSize}
-                                heatMapHits={heatMapHits}
+                                heatMapHits={showHeatMap ? heatMapHits: []}
                             />
 
                         </div>

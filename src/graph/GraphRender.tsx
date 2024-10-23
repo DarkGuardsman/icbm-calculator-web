@@ -53,7 +53,7 @@ export default function GraphPaper({tiles, lines, dots, heatMapHits, gridSizeX, 
         drawLines(ctx, width, height, gridRenderSize, lines);
         drawDots(ctx, width, height, gridRenderSize, dots);
 
-    }, [canvasRef, gridSizeX, gridSizeY, gridRenderSize, tiles, lines, dots]);
+    }, [canvasRef, gridSizeX, gridSizeY, gridRenderSize, tiles, lines, dots, heatMapHits]);
 
     return <canvas ref={canvasRef} width={gridSizeX * gridRenderSize} height={gridSizeY * gridRenderSize}/>;
 }
@@ -150,12 +150,10 @@ function drawHeatTile(ctx: CanvasRenderingContext2D, x: number, y: number, gridR
         return;
     }
 
-    console.log(hits);
-    const val = Math.min(20, Math.max(0, hits)) * 5 ;
+    const val = Math.min(20, Math.max(0, hits)) * 5;
     const r = Math.floor((255 * val) / 100),
         g = Math.floor((255 * (100 - val)) / 100) - 150,
         b = 0;
-
 
     ctx.fillStyle = `rgb(${r},${g},${b})`;
     ctx.fillRect(
