@@ -135,9 +135,9 @@ export default function MapToolPage() {
                 <div className={styles.contentTop}>
                     <div className={styles.center}>
                         <div className={styles.mapControls}>
-                            <div>Render</div>
+                            <div className={styles.mapControlSection}>Render</div>
                             <div className={styles.mapControlEntry}>
-                                <div>Scale:</div>
+                                <div className={styles.mapControlLabel}>Scale:</div>
                                 <NumericIncrementer
                                     value={renderSize}
                                     setValue={setRenderSize}
@@ -145,24 +145,24 @@ export default function MapToolPage() {
                                 />
                             </div>
                             <div className={styles.mapControlEntry}>
-                                <div>Tiles:</div>
+                                <div className={styles.mapControlLabel}>Tiles:</div>
                                 <input type={"checkbox"} checked={showTiles}
                                        onChange={() => setShowTiles(!showTiles)}/>
                             </div>
                             <div className={styles.mapControlEntry}>
-                                <div>Heat:</div>
+                                <div className={styles.mapControlLabel}>Heat:</div>
                                 <input type={"checkbox"} checked={showHeatMap}
                                        onChange={() => setShowHeatMap(!showHeatMap)}/>
                             </div>
                             <div className={styles.mapControlEntry}>
-                                <div>Lines:</div>
+                                <div className={styles.mapControlLabel}>Lines:</div>
                                 <input type={"checkbox"} checked={showDebugLines}
                                        onChange={() => setShowDebugLines(!showDebugLines)}/>
                             </div>
                         </div>
                         <div className={styles.map}>
                             <GraphRender
-                                tiles={tiles}
+                                tiles={showTiles ? tiles : []}
                                 dots={showDebugLines ? dots : []}
                                 lines={showDebugLines ? lines : []}
                                 gridSizeX={sizeX}
