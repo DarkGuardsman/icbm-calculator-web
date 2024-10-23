@@ -46,7 +46,7 @@ export default function GraphPaper({tiles, lines, dots, heatMapHits, gridSizeX, 
         const height = canvas.height;
 
         // TODO eventually draw deltas when we do change sets for faster render times
-
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
         drawTiles(ctx, width, height, gridRenderSize, tiles);
         drawGrid(ctx, width, height, gridRenderSize);
         drawHeatMap(ctx, width, height, gridRenderSize, heatMapHits);
