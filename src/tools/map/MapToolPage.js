@@ -23,6 +23,7 @@ export default function MapToolPage() {
     const [heatMapHits, setHeatMapHits] = useState([]);
 
     const [hasRun, setHasRun] = useState(false);
+    const [showTiles, setShowTiles] = useState(true);
     const [showHeatMap, setShowHeatMap] = useState(true);
     const [showDebugLines, setShowDebugLines] = useState(true);
 
@@ -134,8 +135,9 @@ export default function MapToolPage() {
                 <div className={styles.contentTop}>
                     <div className={styles.center}>
                         <div className={styles.mapControls}>
+                            <div>Render</div>
                             <div className={styles.mapControlEntry}>
-                                <div>Render Size:</div>
+                                <div>Scale:</div>
                                 <NumericIncrementer
                                     value={renderSize}
                                     setValue={setRenderSize}
@@ -143,12 +145,17 @@ export default function MapToolPage() {
                                 />
                             </div>
                             <div className={styles.mapControlEntry}>
-                                <div>Heat Map:</div>
+                                <div>Tiles:</div>
+                                <input type={"checkbox"} checked={showTiles}
+                                       onChange={() => setShowTiles(!showTiles)}/>
+                            </div>
+                            <div className={styles.mapControlEntry}>
+                                <div>Heat:</div>
                                 <input type={"checkbox"} checked={showHeatMap}
                                        onChange={() => setShowHeatMap(!showHeatMap)}/>
                             </div>
                             <div className={styles.mapControlEntry}>
-                                <div>Debug Lines:</div>
+                                <div>Lines:</div>
                                 <input type={"checkbox"} checked={showDebugLines}
                                        onChange={() => setShowDebugLines(!showDebugLines)}/>
                             </div>
