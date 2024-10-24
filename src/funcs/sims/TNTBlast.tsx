@@ -44,7 +44,15 @@ export function tntBlast(cx: number, cz: number,
         color: 'blue'
     });
 
-    const edits: { x: number, y: number, tileId: number, energy: number, cost: number }[] = [];
+    const edits: { x: number, y: number, tileId: number, energy: number, cost: number }[] = [
+        {
+            x: Math.floor(cx),
+            y: Math.floor(cz),
+            tileId: tiles[Math.floor(cz)] ? tiles[Math.floor(cz)][Math.floor(cx)]: TILE_AIR.index,
+            energy: 0,
+            cost: 0
+        }
+    ];
 
     // This code mimics mojang's 1.12.2 TNT blast and is not very optimized
     for (let xs = 0; xs < raysX; ++xs) {
@@ -142,6 +150,9 @@ export function tntBlast(cx: number, cz: number,
 
                 const tileCopy = tiles.map(row => [...row]);
                 edits.forEach((edit) => {
+                    if(!isDefined(tileCopy[edit.y])) {
+                        tileCopy[edit.y] = [];
+                    }
                     tileCopy[edit.y][edit.x] = TILE_AIR.index;
                 })
                 setTiles(tileCopy)
