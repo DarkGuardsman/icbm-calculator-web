@@ -1,5 +1,6 @@
 {
   "name": "icbm-calculator-web",
+  "homepage": "https://darkguardsman.github.io/icbm-calculator-web",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
@@ -20,7 +21,9 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
-    "test": "react-scripts test"
+    "test": "react-scripts test",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d build"
   },
   "eslintConfig": {
     "extends": [
@@ -41,6 +44,7 @@
     ]
   },
   "devDependencies": {
+    "gh-pages": "^6.2.0",
     "typescript-plugin-css-modules": "^5.1.0"
   }
 }
