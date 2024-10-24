@@ -212,6 +212,7 @@ export default function MapToolPage() {
                     <SimulationSelector
                         tiles={tiles}
                         setTile={setTile}
+                        setTiles={setTiles}
                         hasRun={hasRun}
                         onRun={() => setHasRun(true)}
                         addDot={addDot}

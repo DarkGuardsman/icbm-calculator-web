@@ -21,7 +21,7 @@ export interface TNTBlastConfig {
 
 export function tntBlast(cx: number, cz: number,
                          tiles: number[][],
-                         setTile: (x: number, y: number, tileId: number) => void,
+                         setTiles: (tiles: number[][]) => void,
                          addDot: (dot: DebugDotData) => void,
                          addLine: (line: DebugLineData) => void,
                          addHeatMapHit: (x: number, y: number, hits: number) => void,
@@ -139,6 +139,12 @@ export function tntBlast(cx: number, cz: number,
                     // Track ray trace heat
                     addHeatMapHit(tileX, tileY, 1);
                 }
+
+                const tileCopy = tiles.map(row => [...row]);
+                edits.forEach((edit) => {
+                    tileCopy[edit.y][edit.x] = TILE_AIR.index;
+                })
+                setTiles(tileCopy)
             }
         }
     }
@@ -216,7 +222,7 @@ export const TNT_SIM_ENTRY: TestTypeEntry = {
         const randomRayEnergy = args['randomRayEnergy'] as boolean;
         const minEnergyCost = args['minEnergyCost'] as number;
         const scaleEnergyCost = args['scaleEnergyCost'] as number;
-        tntBlast(x, y, props.tiles, props.setTile, props.addDot, props.addLine, props.addHeatMapHit, {
+        tntBlast(x, y, props.tiles, props.setTiles, props.addDot, props.addLine, props.addHeatMapHit, {
             size,
             normalize,
             randomRayEnergy,

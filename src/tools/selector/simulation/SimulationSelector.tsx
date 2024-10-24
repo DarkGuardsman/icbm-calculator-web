@@ -50,6 +50,7 @@ const testOptions: TestTypeEntry[] = [
 export interface SimulationSelectorProps {
     tiles: number[][];
     setTile: (x: number, y: number, tileId: number) => void;
+    setTiles: (tiles: number[][]) => void; //TODO change over to edit list {x, y, oldTileId, newTileId
     addDot: (dot: DebugDotData) => void;
     addLine: (line: DebugLineData) => void;
     addHeatMapHit: (x: number, y: number, hits: number) => void;
