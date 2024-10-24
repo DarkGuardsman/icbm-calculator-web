@@ -1,0 +1,13 @@
+{
+  "files": {
+    "main.css": "/icbm-calculator-web/static/css/main.99581d2e.css",
+    "main.js": "/icbm-calculator-web/static/js/main.0c5dd556.js",
+    "index.html": "/icbm-calculator-web/index.html",
+    "main.99581d2e.css.map": "/icbm-calculator-web/static/css/main.99581d2e.css.map",
+    "main.0c5dd556.js.map": "/icbm-calculator-web/static/js/main.0c5dd556.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.99581d2e.css",
+    "static/js/main.0c5dd556.js"
+  ]
+}
