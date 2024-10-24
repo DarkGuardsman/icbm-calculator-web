@@ -7,10 +7,13 @@ import {
 } from "../../tools/selector/simulation/SimulationSelector";
 
 export interface TNTBlastConfig {
-    rayEnergy?: number;
+    size?: number;
     normalize?: boolean;
-    stepEnergyScale?: number;
-    stepSize?: number
+    randomRayEnergy?:boolean;
+    stepEnergy?: number;
+    stepSize?: number;
+    raysX?: number;
+    raysY?: number;
 }
 
 export function tntBlast(cx: number, cz: number,
@@ -23,9 +26,12 @@ export function tntBlast(cx: number, cz: number,
 ) {
 
     const normalize = valueOr<boolean>(config?.normalize, true);
-    const rayStartEnergy = valueOr<number>(config?.rayEnergy, 6);
-    const stepEnergyScale = valueOr<number>(config?.stepEnergyScale, 0.75);
+    const randomRayEnergy = valueOr<boolean>(config?.randomRayEnergy, true);
+    const rayStartEnergy = valueOr<number>(config?.size, 6);
+    const stepEnergyScale = valueOr<number>(config?.stepEnergy, 0.225);
     const stepSize = valueOr<number>(config?.stepSize, 0.3);
+    const raysX = valueOr<number>(config?.raysX, 16);
+    const raysY = valueOr<number>(config?.raysY, 16);
 
     addDot({
         x: cx, y: cz,
@@ -33,16 +39,15 @@ export function tntBlast(cx: number, cz: number,
         color: 'blue'
     });
 
-    const raysPerAxis = 16;
-    for (let xs = 0; xs < raysPerAxis; ++xs) {
+    // This code mimics mojang's 1.12.2 TNT blast and is not very optimized
+    for (let xs = 0; xs < raysX; ++xs) {
         //for (int ys = 0; ys < this.raysPerAxis; ++ys)
-        //final int ys = 0;
-        for (let zs = 0; zs < raysPerAxis; ++zs) {
-            if (xs === 0 || xs === raysPerAxis - 1 || /*ys == 0 || ys == raysPerAxis - 1 ||*/ zs === 0 || zs === raysPerAxis - 1) {
+        for (let zs = 0; zs < raysY; ++zs) {
+            if (xs === 0 || xs === raysX - 1 || /*ys == 0 || ys == raysPerAxis - 1 ||*/ zs === 0 || zs === raysY - 1) {
                 //Step calculation, between -1 to 1 creating edge slices of a cube
-                let xStep = xs / (raysPerAxis - 1.0) * 2.0 - 1.0;
+                let xStep = xs / (raysX - 1.0) * 2.0 - 1.0;
                 //double yStep = ys / (raysPerAxis - 1.0F) * 2.0F - 1.0F;
-                let zStep = zs / (raysPerAxis - 1.0) * 2.0 - 1.0;
+                let zStep = zs / (raysY - 1.0) * 2.0 - 1.0;
 
                 //Distance
                 const magnitude = Math.sqrt(xStep * xStep + /*yStep * yStep +*/ zStep * zStep);
@@ -55,7 +60,10 @@ export function tntBlast(cx: number, cz: number,
                 }
 
                 //Get energy
-                let radialEnergy = rayStartEnergy; //* (0.7F + random.nextFloat() * 0.6F);
+                let radialEnergy = rayStartEnergy;
+                if(randomRayEnergy) {
+                    radialEnergy *= 0.7 + Math.random() * 0.6;
+                }
 
                 //Get starting point for ray
                 let x = cx;
@@ -64,27 +72,27 @@ export function tntBlast(cx: number, cz: number,
 
                 //final Color lineColor = Utils.randomColor();  //TODO random color
 
-                for (let step = stepSize; radialEnergy > 0.0; radialEnergy -= step * stepEnergyScale) {
+                for (; radialEnergy > 0.0; radialEnergy -= stepEnergyScale) {
 
                     addDot({
-                        x: x + xStep * step,
-                        y: z + zStep * step,
+                        x: x + xStep * stepSize,
+                        y: z + zStep * stepSize,
                         size: 0.11,
                         color: 'blue' //TODO random color
                     });
                     addLine({
                         startX: x,
                         startY: z,
-                        endX: x + xStep * step,
-                        endY: z + zStep * step,
+                        endX: x + xStep * stepSize,
+                        endY: z + zStep * stepSize,
                         size: 0.05,
                         color: 'red' //TODO random color
                     });
 
                     //Iterate location
-                    x += xStep * step;
+                    x += xStep * stepSize;
                     //y += yStep * step;
-                    z += zStep * step
+                    z += zStep * stepSize;
 
                     // Track ray trace heat
                     addHeatMapHit(Math.floor(x), Math.floor(z), 1);
@@ -95,7 +103,7 @@ export function tntBlast(cx: number, cz: number,
 }
 
 export const TNT_SIM_ENTRY: TestTypeEntry = {
-    id: "minecraft:tnt",
+    id: "minecraft:tnt@1.12.2",
     description: "Vanilla TNT explosive blast",
     args: {
         x: {
@@ -108,8 +116,18 @@ export const TNT_SIM_ENTRY: TestTypeEntry = {
             type: "float",
             default: 16
         },
-        energy: {
-            label: "Energy",
+        raysX: {
+            label: "Rays X",
+            type: "float",
+            default: 16
+        },
+        raysY: {
+            label: "Rays Y",
+            type: "float",
+            default: 16
+        },
+        size: {
+            label: "Size",
             type: "float",
             default: 6
         },
@@ -118,29 +136,40 @@ export const TNT_SIM_ENTRY: TestTypeEntry = {
             type: "bool",
             default: true
         },
+        randomRayEnergy: {
+            label: "Random Ray Energy",
+            type: "bool",
+            default: true
+        },
         stepSize: {
             label: "Step Size",
             type: "float",
             default: 0.3
         },
-        stepEnergyScale: {
-            label: "Step Energy Scale",
+        stepEnergy: {
+            label: "Step Energy",
             type: "float",
-            default: 0.75
+            default: 0.225
         }
     },
     runner: (props: SimulationSelectorProps, args: TestArgValues) => {
         const x = args['x'] as number;
         const y = args['y'] as number;
-        const energy = args['energy'] as number;
+        const raysX = args['raysX'] as number;
+        const raysY = args['raysY'] as number;
+        const size = args['size'] as number;
         const stepSize = args['stepSize'] as number;
-        const stepEnergyScale = args['stepEnergyScale'] as number;
+        const stepEnergy = args['stepEnergy'] as number;
         const normalize = args['normalize'] as boolean;
+        const randomRayEnergy = args['randomRayEnergy'] as boolean;
         tntBlast(x, y, props.tiles, props.setTile, props.addDot, props.addLine, props.addHeatMapHit, {
-            rayEnergy: energy,
+            size,
             normalize,
+            randomRayEnergy,
             stepSize,
-            stepEnergyScale
+            stepEnergy,
+            raysX,
+            raysY
         });
     }
 }
