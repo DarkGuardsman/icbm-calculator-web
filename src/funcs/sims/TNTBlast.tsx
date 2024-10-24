@@ -1,28 +1,31 @@
 import {DebugDotData, DebugLineData} from "../../graph/GraphRender";
-import {valueOr} from "../Helpers";
+import {isDefined, valueOr} from "../Helpers";
 import {
     SimulationSelectorProps,
     TestArgValues,
     TestTypeEntry
 } from "../../tools/selector/simulation/SimulationSelector";
+import {getExplosiveResistance, TILE_AIR, TILE_ID_TO_OBJ, TILE_SET} from "../../common/Tiles";
 
 export interface TNTBlastConfig {
     size?: number;
     normalize?: boolean;
-    randomRayEnergy?:boolean;
+    randomRayEnergy?: boolean;
     stepEnergy?: number;
     stepSize?: number;
+    minEnergyCost?: number;
+    scaleEnergyCost?: number;
     raysX?: number;
     raysY?: number;
 }
 
 export function tntBlast(cx: number, cz: number,
-                                 tiles: number[][],
-                                 setTile: (x: number, y: number, tileId: number) => void,
-                                 addDot: (dot: DebugDotData) => void,
-                                 addLine: (line: DebugLineData) => void,
-                                 addHeatMapHit: (x: number, y: number, hits: number) => void,
-                                 config?: TNTBlastConfig
+                         tiles: number[][],
+                         setTile: (x: number, y: number, tileId: number) => void,
+                         addDot: (dot: DebugDotData) => void,
+                         addLine: (line: DebugLineData) => void,
+                         addHeatMapHit: (x: number, y: number, hits: number) => void,
+                         config?: TNTBlastConfig
 ) {
 
     const normalize = valueOr<boolean>(config?.normalize, true);
@@ -32,12 +35,16 @@ export function tntBlast(cx: number, cz: number,
     const stepSize = valueOr<number>(config?.stepSize, 0.3);
     const raysX = valueOr<number>(config?.raysX, 16);
     const raysY = valueOr<number>(config?.raysY, 16);
+    const minEnergyCost = valueOr<number>(config?.minEnergyCost, 0.3);
+    const scaleEnergyCost = valueOr<number>(config?.scaleEnergyCost, 0.3);
 
     addDot({
         x: cx, y: cz,
         size: 0.1,
         color: 'blue'
     });
+
+    const edits: { x: number, y: number, tileId: number, energy: number, cost: number }[] = [];
 
     // This code mimics mojang's 1.12.2 TNT blast and is not very optimized
     for (let xs = 0; xs < raysX; ++xs) {
@@ -61,7 +68,7 @@ export function tntBlast(cx: number, cz: number,
 
                 //Get energy
                 let radialEnergy = rayStartEnergy;
-                if(randomRayEnergy) {
+                if (randomRayEnergy) {
                     radialEnergy *= 0.7 + Math.random() * 0.6;
                 }
 
@@ -74,6 +81,41 @@ export function tntBlast(cx: number, cz: number,
 
                 for (; radialEnergy > 0.0; radialEnergy -= stepEnergyScale) {
 
+                    const tileX = Math.floor(x);
+                    const tileY = Math.floor(z);
+
+                    if (isDefined(tiles[tileY]) && (tileX !== Math.floor(cx) || tileY !== Math.floor(cz))) { //TODO remove center block
+                        const tileId: number = tiles[tileY][tileX];
+                        if (isDefined(tiles[tileId])) {
+                            const tile = TILE_ID_TO_OBJ[tileId];
+
+                            if (isDefined(tile)) {
+                                if (tile !== TILE_AIR) {
+                                    const explosiveResistance = getExplosiveResistance(tile);
+
+
+                                    const cost = (explosiveResistance + minEnergyCost) * scaleEnergyCost;
+                                    if ((radialEnergy - cost) > 0) {
+                                        edits.push({
+                                            x: tileX,
+                                            y: tileY,
+                                            tileId,
+                                            energy: radialEnergy - cost,
+                                            cost
+                                        })
+                                        radialEnergy -= cost
+                                    }
+                                    // Out of energy
+                                    else {
+                                        continue;
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+
+                    // Debug visuals
                     addDot({
                         x: x + xStep * stepSize,
                         y: z + zStep * stepSize,
@@ -95,7 +137,7 @@ export function tntBlast(cx: number, cz: number,
                     z += zStep * stepSize;
 
                     // Track ray trace heat
-                    addHeatMapHit(Math.floor(x), Math.floor(z), 1);
+                    addHeatMapHit(tileX, tileY, 1);
                 }
             }
         }
@@ -109,12 +151,12 @@ export const TNT_SIM_ENTRY: TestTypeEntry = {
         x: {
             label: "X",
             type: "float",
-            default: 16
+            default: 4.5
         },
         y: {
             label: "Y",
             type: "float",
-            default: 16
+            default: 4.5
         },
         raysX: {
             label: "Rays X",
@@ -129,7 +171,7 @@ export const TNT_SIM_ENTRY: TestTypeEntry = {
         size: {
             label: "Size",
             type: "float",
-            default: 6
+            default: 4
         },
         normalize: {
             label: "Normalize",
@@ -150,6 +192,16 @@ export const TNT_SIM_ENTRY: TestTypeEntry = {
             label: "Step Energy",
             type: "float",
             default: 0.225
+        },
+        minEnergyCost: {
+            label: "Min Energy Cost",
+            type: "float",
+            default: 0.3
+        },
+        scaleEnergyCost: {
+            label: "Scale Energy Cost",
+            type: "float",
+            default: 0.3
         }
     },
     runner: (props: SimulationSelectorProps, args: TestArgValues) => {
@@ -162,6 +214,8 @@ export const TNT_SIM_ENTRY: TestTypeEntry = {
         const stepEnergy = args['stepEnergy'] as number;
         const normalize = args['normalize'] as boolean;
         const randomRayEnergy = args['randomRayEnergy'] as boolean;
+        const minEnergyCost = args['minEnergyCost'] as number;
+        const scaleEnergyCost = args['scaleEnergyCost'] as number;
         tntBlast(x, y, props.tiles, props.setTile, props.addDot, props.addLine, props.addHeatMapHit, {
             size,
             normalize,
@@ -169,7 +223,9 @@ export const TNT_SIM_ENTRY: TestTypeEntry = {
             stepSize,
             stepEnergy,
             raysX,
-            raysY
+            raysY,
+            minEnergyCost,
+            scaleEnergyCost
         });
     }
 }
