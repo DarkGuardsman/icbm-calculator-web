@@ -5,7 +5,7 @@ import {
     TestArgValues,
     TestTypeEntry
 } from "../../tools/selector/simulation/SimulationSelector";
-import {getExplosiveResistance, TILE_AIR, TILE_ID_TO_OBJ, TILE_SET} from "../../common/Tiles";
+import {getExplosiveResistance, TILE_AIR, TILE_ID_TO_OBJ} from "../../common/Tiles";
 
 export interface TNTBlastConfig {
     size?: number;

@@ -1,5 +1,3 @@
-import {isDefined} from "../funcs/Helpers";
-
 export interface TileData {
     key: string;
     index: number;

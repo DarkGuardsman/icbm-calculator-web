@@ -170,7 +170,9 @@ export default function MapToolPage() {
                                 gridRenderSize={renderSize}
                                 heatMapHits={showHeatMap ? heatMapHits: []}
                             />
-
+                        </div>
+                        <div>
+                            Block Edits: {edits.length}
                         </div>
                     </div>
                     <div className={styles.right}>
