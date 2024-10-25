@@ -5,11 +5,20 @@ import {TILE_AIR, TILE_SET} from "../../../common/Tiles";
 import {DebugDotData, DebugLineData} from "../../../graph/GraphRender";
 import {TNT_SIM_ENTRY} from "../../../funcs/sims/TNTBlast";
 import NumericIncrementer from "../../../components/incrementer/NumericIncrementer";
+import {useDispatch, useSelector} from "react-redux";
+import {applyMapEdits, selectTiles, TileMapGrid, TileMapGridEdit} from "../../../data/map/tileMap";
 
 export interface TestArgs {
     [key: string]: {
+        /** Label to show users */
         label: string;
+        /** Grouping to show users */
+        section?: string;
+        /** Tab to show users */
+        tab?: string;
+        /** Data type */
         type: 'int' | 'float' | 'bool';
+        /** Default value */
         default: any;
     }
 }
@@ -22,7 +31,7 @@ export interface TestTypeEntry {
     id: string;
     description: string;
     args: TestArgs;
-    runner: (props: SimulationSelectorProps, args: TestArgValues) => void;
+    runner: (props: SimulationSelectorProps, tileMapGrid: TileMapGrid, applyEdits: (edits: TileMapGridEdit[]) => void,  args: TestArgValues) => void;
 }
 
 const testOptions: TestTypeEntry[] = [
@@ -31,26 +40,30 @@ const testOptions: TestTypeEntry[] = [
         id: "random:fill",
         description: "Fills entire map, mostly exists for testing the runtime",
         args: {},
-        runner: (props: SimulationSelectorProps) => {
-            for (let y = 0; y < props.tiles.length; y++) {
-                for (let x = 0; x < props.tiles[y].length; x++) {
+        runner: (props: SimulationSelectorProps, _: TileMapGrid, applyEdits: (edits: TileMapGridEdit[]) => void) => {
+            const edits: TileMapGridEdit[] = [];
+            for (let y = 0; y < props.gridSizeY; y++) {
+                for (let x = 0; x < props.gridSizeX; x++) {
                     const tileToUse = TILE_SET
-                        .filter(t => !t.key.includes("air"))
+                        .filter(t => t !== TILE_AIR)
                         .find((t, i) => {
                             const index = Math.floor(Math.random() * (TILE_SET.length - 1));
                             return i === index;
                         });
-                    props.setTile(x, y, tileToUse?.index === undefined ? TILE_AIR.index : tileToUse.index);
+                    edits.push({
+                        x, y,
+                        id: tileToUse?.index === undefined ? TILE_AIR.index : tileToUse.index
+                    });
                 }
             }
+            applyEdits(edits);
         }
     }
 ]
 
 export interface SimulationSelectorProps {
-    tiles: number[][];
-    setTile: (x: number, y: number, tileId: number) => void;
-    setTiles: (tiles: number[][]) => void; //TODO change over to edit list {x, y, oldTileId, newTileId
+    gridSizeX: number;
+    gridSizeY: number;
     addDot: (dot: DebugDotData) => void;
     addLine: (line: DebugLineData) => void;
     addHeatMapHit: (x: number, y: number, hits: number) => void;
@@ -61,6 +74,9 @@ export interface SimulationSelectorProps {
 export default function SimulationSelector(props: SimulationSelectorProps) {
     const [testToRun, setTestToRun] = useState<TestTypeEntry>(testOptions[0]);
     const [testArgs, setTestArgs] = useState<TestArgValues>({});
+
+    const tiles = useSelector(selectTiles);
+    const dispatch = useDispatch();
 
     useEffect(() => {
         const args: TestArgValues = {};
@@ -80,7 +96,7 @@ export default function SimulationSelector(props: SimulationSelectorProps) {
         props.onRun();
         console.log(`Running ${testToRun.id} with args`, testArgs);
         const start = performance.now();
-        testToRun.runner(props, testArgs);
+        testToRun.runner(props, tiles, (edits) => dispatch(applyMapEdits(edits)), testArgs);
         console.log(`Finished ${testToRun.id} in`, performance.now() - start);
 
     };

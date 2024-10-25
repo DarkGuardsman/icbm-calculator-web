@@ -1,6 +1,6 @@
 import ToolPage from "../ToolPage";
 import GraphRender from "../../graph/GraphRender";
-import {useState} from "react";
+import {createContext, useState} from "react";
 import styles from "./MapToolPage.module.css";
 import NumericIncrementer from "../../components/incrementer/NumericIncrementer";
 import {TILE_AIR} from "../../common/Tiles";
@@ -8,18 +8,27 @@ import {fillTiles} from "../../funcs/TileFuncs";
 import BoxModifier from "../modifiers/box/BoxModifier";
 import {CHUNK_SIZE} from "../../common/Consts";
 import SimulationSelector from "../selector/simulation/SimulationSelector";
+import {useDispatch, useSelector} from "react-redux";
+import {clearTiles, selectTiles} from "../../data/map/tileMap";
+
+export const TileMapContext = createContext({
+
+})
 
 
 export default function MapToolPage() {
+
+    const tiles = useSelector(selectTiles);
+    const dispatch = useDispatch();
+
     const [sizeX, setSizeX] = useState(CHUNK_SIZE * 2);
     const [sizeY, setSizeY] = useState(CHUNK_SIZE * 2);
     const [renderSize, setRenderSize] = useState(20);
 
-    const [tiles, setTiles] = useState([]);
     const [lines, setLines] = useState([]);
     const [dots, setDots] = useState([]);
 
-    const [edits, setEdits] = useState([]);
+    //const [edits, setEdits] = useState([]); TODO store edits using a reducer
     const [heatMapHits, setHeatMapHits] = useState([]);
 
     const [hasRun, setHasRun] = useState(false);
@@ -29,34 +38,6 @@ export default function MapToolPage() {
 
     const [modifiers, setModifiers] = useState([]);
 
-    // TODO convert tile matrix into an object with a custom hook for easier management
-    //          have object contain a setter/getter for each tile
-    //          have object record changes
-    //          have object contain a method to bookmark change sections as a page with start/end  map.start("expand-1") map.end("expand-1")
-    //          as part of edits include cause by  map.setTile(x, y, tile, source)... could even have this auto page bookmarks by making source {id, page, step}
-    const setTile = (x, y, tileId) => {
-
-        // Async is a pain
-        setTiles(prev => {
-            // Duplicate array to trigger state change
-            const newTileArray = prev === undefined ? [] : [...prev];
-            newTileArray[y] = newTileArray[y] === undefined ? [] : [...newTileArray[y]];
-
-            // Record edits
-            const currentTile = newTileArray[y][x];
-            setEdits((prev) => [...prev, {
-                x,y,
-                oldTile: currentTile,
-                newTile: tileId,
-                time: new Date()
-            }]);
-
-            // Store edit
-            newTileArray[y][x] = tileId;
-
-            return newTileArray;
-        });
-    };
 
     const addDot = (dot) => {
         setDots(prev => [...prev, dot]);
@@ -94,11 +75,11 @@ export default function MapToolPage() {
                 })
             }
         });
-        setTiles(tiles);
+        dispatch(clearTiles());
         setHeatMapHits([]);
         setDots([]);
         setLines([]);
-        setEdits([]);
+        //setEdits([]);
     };
 
     const applyModifiers = (modifier, index) => {
@@ -171,9 +152,6 @@ export default function MapToolPage() {
                                 heatMapHits={showHeatMap ? heatMapHits: []}
                             />
                         </div>
-                        <div>
-                            Block Edits: {edits.length}
-                        </div>
                     </div>
                     <div className={styles.right}>
                         <div className={`${styles.toolSection} ${styles.actions}`}>
@@ -212,14 +190,13 @@ export default function MapToolPage() {
                 </div>
                 <div className={styles.contentBottom}>
                     <SimulationSelector
-                        tiles={tiles}
-                        setTile={setTile}
-                        setTiles={setTiles}
                         hasRun={hasRun}
                         onRun={() => setHasRun(true)}
                         addDot={addDot}
                         addLine={addLine}
                         addHeatMapHit={addHeatMapHit}
+                        gridSizeX={sizeX}
+                        gridSizeY={sizeY}
                     />
                 </div>
             </div>

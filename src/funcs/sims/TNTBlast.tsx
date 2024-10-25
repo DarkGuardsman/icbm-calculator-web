@@ -6,6 +6,7 @@ import {
     TestTypeEntry
 } from "../../tools/selector/simulation/SimulationSelector";
 import {getExplosiveResistance, TILE_AIR, TILE_ID_TO_OBJ} from "../../common/Tiles";
+import {getTile, getTileId, TileMapGrid, TileMapGridEdit} from "../../data/map/tileMap";
 
 export interface TNTBlastConfig {
     size?: number;
@@ -20,8 +21,8 @@ export interface TNTBlastConfig {
 }
 
 export function tntBlast(cx: number, cz: number,
-                         tiles: number[][],
-                         setTiles: (tiles: number[][]) => void,
+                         tileMapGrid: TileMapGrid,
+                         applyEdits: (edits: TileMapGridEdit[]) => void,
                          addDot: (dot: DebugDotData) => void,
                          addLine: (line: DebugLineData) => void,
                          addHeatMapHit: (x: number, y: number, hits: number) => void,
@@ -44,13 +45,12 @@ export function tntBlast(cx: number, cz: number,
         color: 'blue'
     });
 
-    const edits: { x: number, y: number, tileId: number, energy: number, cost: number }[] = [
+    const edits: TileMapGridEdit[] = [
         {
             x: Math.floor(cx),
             y: Math.floor(cz),
-            tileId: tiles[Math.floor(cz)] ? tiles[Math.floor(cz)][Math.floor(cx)]: TILE_AIR.index,
-            energy: 0,
-            cost: 0
+            id: getTileId(Math.floor(cx), Math.floor(cz), tileMapGrid),
+            meta: {}
         }
     ];
 
@@ -92,38 +92,35 @@ export function tntBlast(cx: number, cz: number,
                     const tileX = Math.floor(x);
                     const tileY = Math.floor(z);
 
-                    if (isDefined(tiles[tileY]) && (tileX !== Math.floor(cx) || tileY !== Math.floor(cz))) { //TODO remove center block
-                        const tileId: number = tiles[tileY][tileX];
-                        if (isDefined(tiles[tileId])) {
-                            const tile = TILE_ID_TO_OBJ[tileId];
-
-                            if (isDefined(tile)) {
-                                if (tile !== TILE_AIR) {
-                                    const explosiveResistance = getExplosiveResistance(tile);
+                    if ((tileX !== Math.floor(cx) || tileY !== Math.floor(cz))) { //TODO remove center block
+                        const tile = getTile(tileX, tileY, tileMapGrid);
+                        if (tile !== TILE_AIR) {
+                            const explosiveResistance = getExplosiveResistance(tile);
 
 
-                                    const cost = (explosiveResistance + minEnergyCost) * scaleEnergyCost;
-                                    if ((radialEnergy - cost) > 0) {
-                                        edits.push({
-                                            x: tileX,
-                                            y: tileY,
-                                            tileId,
-                                            energy: radialEnergy - cost,
-                                            cost
-                                        })
-                                        radialEnergy -= cost
+                            const cost = (explosiveResistance + minEnergyCost) * scaleEnergyCost;
+                            if ((radialEnergy - cost) > 0) {
+                                edits.push({
+                                    x: tileX,
+                                    y: tileY,
+                                    id: tile.index,
+                                    meta: {
+                                        energy: radialEnergy - cost,
+                                        cost
+                                        //TODO include ray information
                                     }
-                                    // Out of energy
-                                    else {
-                                        continue;
-                                    }
-                                }
+                                })
+                                radialEnergy -= cost
+                            }
+                            // Out of energy
+                            else {
+                                continue;
                             }
                         }
                     }
 
 
-                    // Debug visuals
+                    // Debug visuals TODO migrate to reducer that uses the edit metadata
                     addDot({
                         x: x + xStep * stepSize,
                         y: z + zStep * stepSize,
@@ -145,20 +142,16 @@ export function tntBlast(cx: number, cz: number,
                     z += zStep * stepSize;
 
                     // Track ray trace heat
-                    addHeatMapHit(tileX, tileY, 1);
+                    addHeatMapHit(tileX, tileY, 1); //TODO calculate in reducer using edit metadata
                 }
 
-                const tileCopy = tiles.map(row => [...row]);
-                edits.forEach((edit) => {
-                    if(!isDefined(tileCopy[edit.y])) {
-                        tileCopy[edit.y] = [];
-                    }
-                    tileCopy[edit.y][edit.x] = TILE_AIR.index;
-                })
-                setTiles(tileCopy)
+
             }
         }
     }
+
+    //Done
+    applyEdits(edits);
 }
 
 export const TNT_SIM_ENTRY: TestTypeEntry = {
@@ -221,7 +214,7 @@ export const TNT_SIM_ENTRY: TestTypeEntry = {
             default: 0.3
         }
     },
-    runner: (props: SimulationSelectorProps, args: TestArgValues) => {
+    runner: (props: SimulationSelectorProps, tileMapGrid: TileMapGrid, applyEdits: (edits: TileMapGridEdit[]) => void, args: TestArgValues) => {
         const x = args['x'] as number;
         const y = args['y'] as number;
         const raysX = args['raysX'] as number;
@@ -233,7 +226,7 @@ export const TNT_SIM_ENTRY: TestTypeEntry = {
         const randomRayEnergy = args['randomRayEnergy'] as boolean;
         const minEnergyCost = args['minEnergyCost'] as number;
         const scaleEnergyCost = args['scaleEnergyCost'] as number;
-        tntBlast(x, y, props.tiles, props.setTiles, props.addDot, props.addLine, props.addHeatMapHit, {
+        tntBlast(x, y, tileMapGrid, applyEdits, props.addDot, props.addLine, props.addHeatMapHit, {
             size,
             normalize,
             randomRayEnergy,
