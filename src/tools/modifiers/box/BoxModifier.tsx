@@ -22,7 +22,7 @@ export interface IBoxGeneratorArgs {
     y: number;
     width: number;
     height: number;
-    tiles: Array<ITileGenData>
+    tiles: ITileGenData[]
 }
 
 export interface ITileGenData {

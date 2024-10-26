@@ -6,7 +6,9 @@ import {DebugDotData, DebugLineData} from "../../../graph/GraphRender";
 import {TNT_SIM_ENTRY} from "../../../funcs/sims/TNTBlast";
 import NumericIncrementer from "../../../components/incrementer/NumericIncrementer";
 import {useDispatch, useSelector} from "react-redux";
-import {applyMapEdits, selectTiles, TileMapGrid, TileMapGridEdit} from "../../../data/map/tileMap";
+import {addEdit, applyMapEdits, selectTiles, setTileData} from "../../../data/map/tileMap";
+import {initEdits, MapEdits2D, TileMap2D} from "../../../api/Map2D";
+import {incrementSimEdit} from "../../map/MapToolPage";
 
 export interface TestArgs {
     [key: string]: {
@@ -31,7 +33,7 @@ export interface TestTypeEntry {
     id: string;
     description: string;
     args: TestArgs;
-    runner: (props: SimulationSelectorProps, tileMapGrid: TileMapGrid, applyEdits: (edits: TileMapGridEdit[]) => void,  args: TestArgValues) => void;
+    runner: (props: SimulationSelectorProps, tileMapGrid: TileMap2D, applyEdits: (edits: MapEdits2D) => void, args: TestArgValues) => void;
 }
 
 const testOptions: TestTypeEntry[] = [
@@ -40,8 +42,11 @@ const testOptions: TestTypeEntry[] = [
         id: "random:fill",
         description: "Fills entire map, mostly exists for testing the runtime",
         args: {},
-        runner: (props: SimulationSelectorProps, _: TileMapGrid, applyEdits: (edits: TileMapGridEdit[]) => void) => {
-            const edits: TileMapGridEdit[] = [];
+        runner: (props: SimulationSelectorProps, _: TileMap2D, applyEdits: (edits: MapEdits2D) => void) => {
+            const edits: MapEdits2D = initEdits();
+            const sourceId = `random:fill-${Date.now()}`;
+            let editIndex = 0;
+
             for (let y = 0; y < props.gridSizeY; y++) {
                 for (let x = 0; x < props.gridSizeX; x++) {
                     const tileToUse = TILE_SET
@@ -50,10 +55,21 @@ const testOptions: TestTypeEntry[] = [
                             const index = Math.floor(Math.random() * (TILE_SET.length - 1));
                             return i === index;
                         });
-                    edits.push({
-                        x, y,
-                        id: tileToUse?.index === undefined ? TILE_AIR.index : tileToUse.index
-                    });
+                    addEdit(edits,
+                        {
+                            x,
+                            y,
+                            id: tileToUse?.index === undefined ? TILE_AIR.index : tileToUse.index,
+                            index: incrementSimEdit(),
+                            meta: {
+                                source: {
+                                    key: sourceId,
+                                    phase: 'loop',
+                                    index: editIndex++
+                                }
+                            }
+                        }
+                    );
                 }
             }
             applyEdits(edits);

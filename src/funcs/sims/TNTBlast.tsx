@@ -1,12 +1,18 @@
 import {DebugDotData, DebugLineData} from "../../graph/GraphRender";
-import {isDefined, valueOr} from "../Helpers";
+import {valueOr} from "../Helpers";
 import {
     SimulationSelectorProps,
     TestArgValues,
     TestTypeEntry
 } from "../../tools/selector/simulation/SimulationSelector";
-import {getExplosiveResistance, TILE_AIR, TILE_ID_TO_OBJ} from "../../common/Tiles";
-import {getTile, getTileId, TileMapGrid, TileMapGridEdit} from "../../data/map/tileMap";
+import {getExplosiveResistance, TILE_AIR} from "../../common/Tiles";
+import {
+    addEdit,
+    getTile,
+    getTileId,
+} from "../../data/map/tileMap";
+import {initEdits, MapEdits2D, TileMap2D} from "../../api/Map2D";
+import {incrementSimEdit} from "../../tools/map/MapToolPage";
 
 export interface TNTBlastConfig {
     size?: number;
@@ -21,8 +27,8 @@ export interface TNTBlastConfig {
 }
 
 export function tntBlast(cx: number, cz: number,
-                         tileMapGrid: TileMapGrid,
-                         applyEdits: (edits: TileMapGridEdit[]) => void,
+                         tileMapGrid: TileMap2D,
+                         applyEdits: (edits: MapEdits2D) => void,
                          addDot: (dot: DebugDotData) => void,
                          addLine: (line: DebugLineData) => void,
                          addHeatMapHit: (x: number, y: number, hits: number) => void,
@@ -45,14 +51,24 @@ export function tntBlast(cx: number, cz: number,
         color: 'blue'
     });
 
-    const edits: TileMapGridEdit[] = [
-        {
-            x: Math.floor(cx),
-            y: Math.floor(cz),
-            id: getTileId(Math.floor(cx), Math.floor(cz), tileMapGrid),
-            meta: {}
+
+    const sourceId = `TNT-${Date.now()}`;
+    let editIndex = 0;
+    const edits: MapEdits2D = initEdits();
+    addEdit(edits,  {
+        //Remove center
+        x: Math.floor(cx),
+        y: Math.floor(cz),
+        id: getTileId(Math.floor(cx), Math.floor(cz), tileMapGrid),
+        index: incrementSimEdit(),
+        meta: {
+            source: {
+                key: sourceId,
+                phase: 'init',
+                index: editIndex++
+            }
         }
-    ];
+    });
 
     // This code mimics mojang's 1.12.2 TNT blast and is not very optimized
     for (let xs = 0; xs < raysX; ++xs) {
@@ -98,16 +114,36 @@ export function tntBlast(cx: number, cz: number,
                             const explosiveResistance = getExplosiveResistance(tile);
 
 
+                            // min energy is likely to offset zero hardness blocks like tall grass
+                            // scaleEnergyCost is likely the same value as stepSize. Both are 0.3~ in the code.
+                            //              Given we step 0.3 we hit the same both per ray on average 3 times
                             const cost = (explosiveResistance + minEnergyCost) * scaleEnergyCost;
                             if ((radialEnergy - cost) > 0) {
-                                edits.push({
+                                addEdit(edits, {
                                     x: tileX,
                                     y: tileY,
                                     id: tile.index,
+                                    index: incrementSimEdit(),
                                     meta: {
-                                        energy: radialEnergy - cost,
-                                        cost
-                                        //TODO include ray information
+                                        source: {
+                                            key: sourceId,
+                                            phase: `ray-${xs}-${zs}`,
+                                            index: editIndex++
+                                        },
+                                        ray: {
+                                            start: {
+                                                x,
+                                                y: z
+                                            },
+                                            end: {
+                                                x: x + xStep * stepSize,
+                                                y: z + zStep * stepSize
+                                            },
+                                            meta: {
+                                                energyLeft: radialEnergy - cost,
+                                                energyCost: cost
+                                            }
+                                        }
                                     }
                                 })
                                 radialEnergy -= cost
@@ -214,7 +250,7 @@ export const TNT_SIM_ENTRY: TestTypeEntry = {
             default: 0.3
         }
     },
-    runner: (props: SimulationSelectorProps, tileMapGrid: TileMapGrid, applyEdits: (edits: TileMapGridEdit[]) => void, args: TestArgValues) => {
+    runner: (props: SimulationSelectorProps, tileMapGrid: TileMap2D, applyEdits: (edits: MapEdits2D) => void, args: TestArgValues) => {
         const x = args['x'] as number;
         const y = args['y'] as number;
         const raysX = args['raysX'] as number;

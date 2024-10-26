@@ -1,20 +1,23 @@
 import ToolPage from "../ToolPage";
-import GraphRender from "../../graph/GraphRender";
+import GraphRender, {DebugDotData, DebugLineData} from "../../graph/GraphRender";
 import {createContext, useState} from "react";
 import styles from "./MapToolPage.module.css";
 import NumericIncrementer from "../../components/incrementer/NumericIncrementer";
 import {TILE_AIR} from "../../common/Tiles";
 import {fillTiles} from "../../funcs/TileFuncs";
-import BoxModifier from "../modifiers/box/BoxModifier";
+import BoxModifier, {IBoxGenerator, ITileGenData} from "../modifiers/box/BoxModifier";
 import {CHUNK_SIZE} from "../../common/Consts";
 import SimulationSelector from "../selector/simulation/SimulationSelector";
 import {useDispatch, useSelector} from "react-redux";
-import {clearTiles, selectTiles} from "../../data/map/tileMap";
+import {applyMapEdits, clearTiles, selectTiles} from "../../data/map/tileMap";
+import IMapModifier from "../modifiers/types";
+import {initEdits, MapEdits2D} from "../../api/Map2D";
+import {isDefined} from "../../funcs/Helpers";
 
-export const TileMapContext = createContext({
-
-})
-
+let simEditIndex = 0;
+export function incrementSimEdit() :number {
+    return simEditIndex++;
+}
 
 export default function MapToolPage() {
 
@@ -25,29 +28,29 @@ export default function MapToolPage() {
     const [sizeY, setSizeY] = useState(CHUNK_SIZE * 2);
     const [renderSize, setRenderSize] = useState(20);
 
-    const [lines, setLines] = useState([]);
-    const [dots, setDots] = useState([]);
+    const [lines, setLines] = useState<DebugLineData[]>([]);
+    const [dots, setDots] = useState<DebugDotData[]>([]);
 
     //const [edits, setEdits] = useState([]); TODO store edits using a reducer
-    const [heatMapHits, setHeatMapHits] = useState([]);
+    const [heatMapHits, setHeatMapHits] = useState<number[][]>([]);
 
     const [hasRun, setHasRun] = useState(false);
     const [showTiles, setShowTiles] = useState(true);
     const [showHeatMap, setShowHeatMap] = useState(true);
     const [showDebugLines, setShowDebugLines] = useState(true);
 
-    const [modifiers, setModifiers] = useState([]);
+    const [modifiers, setModifiers] = useState<IMapModifier[]>([]);
 
 
-    const addDot = (dot) => {
+    const addDot = (dot: DebugDotData) => {
         setDots(prev => [...prev, dot]);
     };
 
-    const addLine = (line) => {
+    const addLine = (line: DebugLineData) => {
         setLines(prev => [...prev, line]);
     };
 
-    const addHeatMapHit = (x, y, hits) => {
+    const addHeatMapHit = (x: number, y: number, hits: number) => {
         setHeatMapHits(prev => {
             const newHeatMap = prev === undefined ? [] : [...prev];
             newHeatMap[y] = newHeatMap[y] === undefined ? [] : [...newHeatMap[y]];
@@ -57,32 +60,57 @@ export default function MapToolPage() {
     }
 
     const generateMap = () => {
-        const tiles = [];
+        simEditIndex = 0;
+
         setHasRun(false);
-        fillTiles(tiles, 0, 0, sizeX, sizeY, () => TILE_AIR.index);
-        modifiers.forEach((modifier) => {
-            if (modifier.tool === "generate-box") {
-                fillTiles(tiles, modifier.args.x, modifier.args.y, modifier.args.width, modifier.args.height, () => {
-                    const possibleTiles = modifier.args.tiles;
-                    if (possibleTiles.length > 1) {
-                        for (let i = 0; i < possibleTiles.length - 1; i++) {
-                            if (Math.random() > possibleTiles[i].rate) {
-                                return possibleTiles[i].id;
-                            }
-                        }
-                    }
-                    return possibleTiles[modifier.args.tiles.length - 1].id
-                })
-            }
-        });
         dispatch(clearTiles());
         setHeatMapHits([]);
         setDots([]);
         setLines([]);
-        //setEdits([]);
+
+        const edits: MapEdits2D = initEdits();
+
+        // Fill map with air
+        let editIndex = 0;
+        fillTiles(edits, 0, 0, sizeX, sizeY, (x, y) => ({
+            x, y,
+            index: incrementSimEdit(),
+            id: TILE_AIR.index,
+            meta: {
+                source: {
+                    key: "init",
+                    phase: "fill",
+                    index: editIndex++
+                }
+            }
+        }));
+
+        // Apply modifiers
+        modifiers.forEach((modifier, mIndex) => {
+            if (modifier.tool === "generate-box") {
+                const {args} = modifier as IBoxGenerator;
+                const possibleTiles = args.tiles;
+
+                editIndex = 0;
+                fillTiles(edits, args.x, args.y, args.width, args.height, (x, y) => ({
+                   x, y,
+                    index: incrementSimEdit(),
+                    id: getRandomTile(possibleTiles),
+                    meta: {
+                       source: {
+                           key : `box-${mIndex}`,
+                           phase: "fill",
+                           index: editIndex++
+                       }
+                    }
+                }))
+            }
+        });
+
+        dispatch(applyMapEdits(edits));
     };
 
-    const applyModifiers = (modifier, index) => {
+    const applyModifiers = (modifier: IMapModifier, index: number) => {
         setModifiers(modifiers.map((oldModifier, i) => {
             if (i === index) {
                 return modifier;
@@ -106,7 +134,7 @@ export default function MapToolPage() {
                     }
                 ]
             }
-        });
+        } as IBoxGenerator);
         setModifiers(newArray);
     };
 
@@ -143,9 +171,12 @@ export default function MapToolPage() {
                         </div>
                         <div className={styles.map}>
                             <GraphRender
-                                tiles={showTiles ? tiles : []}
-                                dots={showDebugLines ? dots : []}
-                                lines={showDebugLines ? lines : []}
+                                showTiles={showTiles}
+                                showDebugLines={showDebugLines}
+                                showHeatMap={showHeatMap}
+                                tiles={tiles}
+                                dots={dots}
+                                lines={lines}
                                 gridSizeX={sizeX}
                                 gridSizeY={sizeY}
                                 gridRenderSize={renderSize}
@@ -204,11 +235,11 @@ export default function MapToolPage() {
     )
 }
 
-function buildModifier(modifier, index, applyChanges) {
+function buildModifier(modifier: IMapModifier, index: number, applyChanges: (modifier: IMapModifier, index: number) => void) {
     if (modifier.tool === "generate-box") {
         return <BoxModifier
             key={"modifier-" + index}
-            modifier={modifier}
+            modifier={modifier as IBoxGenerator}
             applyChanges={applyChanges}
             index={index}
         />
@@ -218,4 +249,16 @@ function buildModifier(modifier, index, applyChanges) {
             UNKNOWN TOOL '{modifier.tool}'
         </div>
     )
+}
+
+function getRandomTile(possibleTiles: ITileGenData[]) {
+    if (possibleTiles.length > 1) {
+        for (let i = 0; i < possibleTiles.length - 1; i++) {
+            const entry = possibleTiles[i];
+            if (isDefined(entry.rate) && Math.random() > entry.rate) {
+                return possibleTiles[i].id;
+            }
+        }
+    }
+    return possibleTiles[possibleTiles.length - 1].id
 }

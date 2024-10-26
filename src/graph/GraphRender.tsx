@@ -1,6 +1,10 @@
 import React, {useEffect, useRef} from 'react';
-import {TILE_ID_TO_OBJ} from "../common/Tiles";
+import {TILE_ID_TO_OBJ, TileData} from "../common/Tiles";
 import {CHUNK_SIZE} from "../common/Consts";
+import {useSelector} from "react-redux";
+import {getTile, selectTiles} from "../data/map/tileMap";
+import {TileMap2D} from "../api/Map2D";
+import {isDefined} from "../funcs/Helpers";
 
 export interface DebugLineData {
     startX: number;
@@ -19,26 +23,36 @@ export interface DebugDotData {
 }
 
 export interface GraphPaperProps {
-    tiles: number[][];
+    tiles: TileMap2D;
     heatMapHits: number[][];
     lines: DebugLineData[];
     dots: DebugDotData[];
     gridSizeX: number;
     gridSizeY: number;
     gridRenderSize: number;
+
+    showTiles: boolean;
+    showDebugLines: boolean;
+    showHeatMap: boolean;
 }
 
-export default function GraphPaper({tiles, lines, dots, heatMapHits, gridSizeX, gridSizeY, gridRenderSize = 10}: GraphPaperProps): React.JSX.Element {
+export default function GraphPaper({
+                                       lines, dots, heatMapHits,
+                                       gridSizeX, gridSizeY, gridRenderSize = 10,
+                                       showTiles, showDebugLines, showHeatMap
+                                   }: GraphPaperProps): React.JSX.Element {
     const canvasRef = useRef<HTMLCanvasElement>(null);
+
+    const tiles = useSelector(selectTiles);
 
     useEffect(() => {
         const canvas = canvasRef.current;
-        if(canvas == null) {
+        if (canvas == null) {
             return;
         }
 
         const ctx = canvas.getContext('2d');
-        if(ctx == null) {
+        if (ctx == null) {
             return;
         }
 
@@ -47,39 +61,33 @@ export default function GraphPaper({tiles, lines, dots, heatMapHits, gridSizeX, 
 
         // TODO eventually draw deltas when we do change sets for faster render times
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        drawTiles(ctx, width, height, gridRenderSize, tiles);
+        if (showTiles) {
+            drawTiles(ctx, width, height, gridRenderSize, tiles);
+        }
         drawGrid(ctx, width, height, gridRenderSize);
-        drawHeatMap(ctx, width, height, gridRenderSize, heatMapHits);
-        drawLines(ctx, width, height, gridRenderSize, lines);
-        drawDots(ctx, width, height, gridRenderSize, dots);
+        if (showHeatMap) {
+            drawHeatMap(ctx, width, height, gridRenderSize, heatMapHits);
+        }
+        if (showDebugLines) {
+            drawLines(ctx, width, height, gridRenderSize, lines);
+            drawDots(ctx, width, height, gridRenderSize, dots);
+        }
 
-    }, [canvasRef, gridSizeX, gridSizeY, gridRenderSize, tiles, lines, dots, heatMapHits]);
+    }, [canvasRef, gridSizeX, gridSizeY, gridRenderSize, tiles, lines, dots, heatMapHits, showTiles, showHeatMap, showDebugLines]);
 
     return <canvas ref={canvasRef} width={gridSizeX * gridRenderSize} height={gridSizeY * gridRenderSize}/>;
 }
 
-function drawTiles(ctx: CanvasRenderingContext2D, width: number, height: number, gridRenderSize: number, tiles: number[][]) {
+function drawTiles(ctx: CanvasRenderingContext2D, width: number, height: number, gridRenderSize: number, tiles: TileMap2D) {
 
-    for (let y = 0; y < tiles.length; y++) {
-        const row = tiles[y];
-        if(row !== null && row !== undefined) {
-            for (let x = 0; x < row.length; x++) {
-                drawTile(ctx, x, y, gridRenderSize, row[x]);
-            }
+    for (let y = tiles.start.y; y <= tiles.end.y; y++) {
+        for (let x = tiles.start.x; x <= tiles.end.x; x++) {
+            drawTile(ctx, x, y, gridRenderSize, getTile(x, y, tiles));
         }
     }
 }
 
-function drawTile(ctx: CanvasRenderingContext2D, x: number, y: number, gridRenderSize: number, tileId: number) {
-    if(tileId === null || tileId === undefined) {
-        return;
-    }
-
-    const tile = TILE_ID_TO_OBJ[tileId];
-    if(tile === null || tile === undefined) {
-        return;
-    }
-
+function drawTile(ctx: CanvasRenderingContext2D, x: number, y: number, gridRenderSize: number, tile: TileData) {
     ctx.fillStyle = tile.color;
     ctx.fillRect(
         x * gridRenderSize,
@@ -137,7 +145,7 @@ function drawHeatMap(ctx: CanvasRenderingContext2D, width: number, height: numbe
 
     for (let y = 0; y < heatMapHits.length; y++) {
         const row = heatMapHits[y];
-        if(row !== null && row !== undefined) {
+        if (row !== null && row !== undefined) {
             for (let x = 0; x < row.length; x++) {
                 drawHeatTile(ctx, x, y, gridRenderSize, row[x]);
             }
@@ -146,7 +154,7 @@ function drawHeatMap(ctx: CanvasRenderingContext2D, width: number, height: numbe
 }
 
 function drawHeatTile(ctx: CanvasRenderingContext2D, x: number, y: number, gridRenderSize: number, hits: number) {
-    if(hits === null || hits === undefined) {
+    if (hits === null || hits === undefined) {
         return;
     }
 
