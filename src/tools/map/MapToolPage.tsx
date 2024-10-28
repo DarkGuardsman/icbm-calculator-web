@@ -1,6 +1,6 @@
 import ToolPage from "../ToolPage";
-import GraphRender, {DebugDotData, DebugLineData} from "../../graph/GraphRender";
-import {createContext, useState} from "react";
+import GraphRender from "../../graph/GraphRender";
+import {useState} from "react";
 import styles from "./MapToolPage.module.css";
 import NumericIncrementer from "../../components/incrementer/NumericIncrementer";
 import {TILE_AIR} from "../../common/Tiles";
