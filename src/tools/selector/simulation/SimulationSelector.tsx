@@ -219,7 +219,7 @@ function SimulationArgsSection(props: SimulationArgsSectionProps,): React.JSX.El
                                 <div>
                                     <input
                                         type="checkbox"
-                                        checked={value}
+                                        checked={value ?? false}
                                         onChange={(event) => setTestArg(arg.key, !value)}
                                     />
                                 </div>
