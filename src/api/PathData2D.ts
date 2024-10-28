@@ -7,6 +7,10 @@ import EditSource from "./EditSource";
 export default interface PathData2D {
     start: Pos2D;
     end: Pos2D;
+
+    /** Simulation index, populated by redux during storage */
+    index?: number;
+
     meta: PathData2DMeta;
 }
 

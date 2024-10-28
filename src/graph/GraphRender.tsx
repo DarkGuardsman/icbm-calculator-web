@@ -6,6 +6,8 @@ import {selectPaths, selectTiles} from "../data/map/tileMap";
 import {TileMap2D} from "../api/Map2D";
 import PathData2D from "../api/PathData2D";
 import {getTile} from "../funcs/TileFuncs";
+import assert from "node:assert";
+import {isDefined} from "../funcs/Helpers";
 
 export interface GraphPaperProps {
     tiles: TileMap2D;
@@ -106,15 +108,24 @@ function drawGrid(ctx: CanvasRenderingContext2D, width: number, height: number, 
 
 function drawLines(ctx: CanvasRenderingContext2D, width: number, height: number, gridRenderSize: number, lines: PathData2D[]) {
 
-    const lineSize = 0.05; //TODO set via UI
-    const dotSize = 0.1;
+    const lineSize = 0.04; //TODO set via UI
+    const dotSize = 0.05;
 
     // TODO add logic to recolor and resize lines based on energy
     //      Idea would be the line gets smaller the less energy exists
     //      Then the color would change to note cost of energy... for visual friendliness we might want 2 lines (outside for total energy, inside for energy cost?)
     //      Other option we could change the end cap size to note cost? Might have to toy with it but should be configurable in UI
 
-    lines.forEach((line) => {
+    const sortedLines = [...lines].sort((a, b) => {
+        if(!isDefined(a.index)) {
+            return isDefined(b.index) ? -1 : 0;
+        }
+        else if(!isDefined(b.index)) {
+            return isDefined(a.index) ? 1 : 0;
+        }
+        return a.index - b.index
+    });
+    sortedLines.forEach((line) => {
 
         // Line
         ctx.strokeStyle = 'black'; //TODO generate random color per source phase and store in state
@@ -127,7 +138,7 @@ function drawLines(ctx: CanvasRenderingContext2D, width: number, height: number,
         // End Cap TODO make arrow showing vector
         ctx.beginPath();
         ctx.arc(line.end.x * gridRenderSize, line.end.y * gridRenderSize, dotSize * gridRenderSize, 0, 2 * Math.PI);
-        ctx.fillStyle = 'black'; //TODO generate random color per source phase and store in state
+        ctx.fillStyle = 'grey'; //TODO generate random color per source phase and store in state
         ctx.fill();
     });
 }

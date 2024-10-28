@@ -76,6 +76,7 @@ function collectPaths(existingPaths: PathData2D[], editMap: SimEntryMap2D) {
                                 if (isDefined(path)) {
                                     paths.push({
                                         ...path,
+                                        index: edit.index,
                                         //TODO add simEditIndex for sorting
                                         meta: {
                                             ...path.meta,
