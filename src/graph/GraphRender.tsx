@@ -6,7 +6,7 @@ import {selectPathHeat, selectPaths, selectTiles} from "../data/map/tileMap";
 import Map2D, {TileMap2D} from "../api/Map2D";
 import PathData2D from "../api/PathData2D";
 import {getTile, getTileData} from "../funcs/TileFuncs";
-import {isDefined} from "../funcs/Helpers";
+import {isDefined, sortNum} from "../funcs/Helpers";
 
 export interface GraphPaperProps {
 
@@ -116,18 +116,19 @@ function drawLines(ctx: CanvasRenderingContext2D, width: number, height: number,
     //      Then the color would change to note cost of energy... for visual friendliness we might want 2 lines (outside for total energy, inside for energy cost?)
     //      Other option we could change the end cap size to note cost? Might have to toy with it but should be configurable in UI
 
-    const sortedLines = [...lines].sort((a, b) => {
-        if (!isDefined(a.index)) {
-            return isDefined(b.index) ? -1 : 0;
-        } else if (!isDefined(b.index)) {
-            return isDefined(a.index) ? 1 : 0;
-        }
-        return a.index - b.index
-    }).reverse();
+    const sortedLines = [...lines].sort((a, b) => sortNum(a?.index, b?.index)).reverse();
+    const energyEntries = lines.map(line => line.meta.energyLeft).filter(n => isDefined(n)).sort(sortNum);
+    const largestEnergy = energyEntries.length > 0 ? energyEntries[energyEntries.length - 1] : undefined;
     sortedLines.forEach((line) => {
 
-        const arrowSize = gridRenderSize * dotSize * 3;
-        const lineOffset =  arrowSize / 3;
+        let renderScale = gridRenderSize;
+        if(isDefined(line.meta.energyLeft) && isDefined(largestEnergy)) {
+            renderScale -= gridRenderSize * (1 - line.meta.energyLeft / largestEnergy) * 0.8
+        }
+
+        const arrowSize = renderScale * dotSize * 3;
+        const arrowLineEndOffset =  arrowSize / 3;
+        const lineWidth = lineSize * renderScale;
 
         const sx = line.start.x * gridRenderSize;
         const sy = line.start.y * gridRenderSize;
@@ -138,25 +139,17 @@ function drawLines(ctx: CanvasRenderingContext2D, width: number, height: number,
 
         // Start Cap
         ctx.beginPath();
-        ctx.arc(sx, sy, lineSize * gridRenderSize / 1.5, 0, 2 * Math.PI);
+        ctx.arc(sx, sy, lineWidth / 1.5, 0, 2 * Math.PI);
         ctx.fillStyle = 'black';
         ctx.fill();
 
         // Line
         ctx.beginPath();
         ctx.moveTo(sx, sy);
-        ctx.lineTo(ex - lineOffset * Math.cos(angle), ey - lineOffset * Math.sin(angle));
+        ctx.lineTo(ex - arrowLineEndOffset * Math.cos(angle), ey - arrowLineEndOffset * Math.sin(angle));
         ctx.strokeStyle = 'black'; //TODO generate random color per source phase and store in state
-        ctx.lineWidth = lineSize * gridRenderSize;
+        ctx.lineWidth = lineWidth;
         ctx.stroke();
-
-
-
-        // End Cap TODO add toggle (user and code[vector<arrow>,directionless<dot>]) to flip between different end caps
-        //ctx.beginPath();
-        //ctx.arc(line.end.x * gridRenderSize, line.end.y * gridRenderSize, dotSize * gridRenderSize, 0, 2 * Math.PI);
-        //ctx.fillStyle = 'grey'; //TODO generate random color per source phase and store in state
-        //ctx.fill();
 
         // Arrow
         ctx.fillStyle = 'grey';
@@ -166,6 +159,12 @@ function drawLines(ctx: CanvasRenderingContext2D, width: number, height: number,
         ctx.lineTo(ex - arrowSize * Math.cos(angle + Math.PI / 6), ey - arrowSize * Math.sin(angle + Math.PI / 6));
         ctx.closePath();
         ctx.fill();
+
+        // End Cap TODO add toggle (user and code[vector<arrow>,directionless<dot>]) to flip between different end caps
+        //ctx.beginPath();
+        //ctx.arc(line.end.x * gridRenderSize, line.end.y * gridRenderSize, dotSize * gridRenderSize, 0, 2 * Math.PI);
+        //ctx.fillStyle = 'grey'; //TODO generate random color per source phase and store in state
+        //ctx.fill();
     });
 }
 
