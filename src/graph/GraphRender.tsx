@@ -2,18 +2,18 @@ import React, {useEffect, useRef} from 'react';
 import {TileData} from "../common/Tiles";
 import {CHUNK_SIZE} from "../common/Consts";
 import {useSelector} from "react-redux";
-import {selectPaths, selectTiles} from "../data/map/tileMap";
-import {TileMap2D} from "../api/Map2D";
+import {selectPathHeat, selectPaths, selectTiles} from "../data/map/tileMap";
+import Map2D, {TileMap2D} from "../api/Map2D";
 import PathData2D from "../api/PathData2D";
-import {getTile} from "../funcs/TileFuncs";
+import {getTile, getTileData} from "../funcs/TileFuncs";
 import assert from "node:assert";
 import {isDefined} from "../funcs/Helpers";
 
 export interface GraphPaperProps {
-    tiles: TileMap2D;
-    heatMapHits: number[][];
+
     gridSizeX: number;
     gridSizeY: number;
+
     gridRenderSize: number;
 
     showTiles: boolean;
@@ -21,14 +21,15 @@ export interface GraphPaperProps {
     showHeatMap: boolean;
 }
 
-export default function GraphPaper({ heatMapHits,
+export default function GraphPaper({
                                        gridSizeX, gridSizeY, gridRenderSize = 10,
                                        showTiles, showDebugLines, showHeatMap
                                    }: GraphPaperProps): React.JSX.Element {
     const canvasRef = useRef<HTMLCanvasElement>(null);
 
-    const tiles = useSelector(selectTiles);
+    const tiles = useSelector(selectTiles); //TODO decouple so we can reuse the grid render
     const paths = useSelector(selectPaths);
+    const pathHeat = useSelector(selectPathHeat);
 
     useEffect(() => {
         const canvas = canvasRef.current;
@@ -47,10 +48,10 @@ export default function GraphPaper({ heatMapHits,
         // TODO eventually draw deltas when we do change sets for faster render times
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         if (showTiles) {
-            drawTiles(ctx, width, height, gridRenderSize, tiles);
+            drawTiles(ctx, width, height, gridRenderSize, tiles); //TODO make these render layers that can be added and removed by parent by passing in as functions
         }
         if (showHeatMap) {
-            drawHeatMap(ctx, width, height, gridRenderSize, heatMapHits);
+            drawHeatMap(ctx, width, height, gridRenderSize, pathHeat);
         }
 
         drawGrid(ctx, width, height, gridRenderSize);
@@ -59,7 +60,7 @@ export default function GraphPaper({ heatMapHits,
             drawLines(ctx, width, height, gridRenderSize, paths);
         }
 
-    }, [canvasRef, gridSizeX, gridSizeY, gridRenderSize, tiles, paths, heatMapHits, showTiles, showHeatMap, showDebugLines]);
+    }, [canvasRef, gridSizeX, gridSizeY, gridRenderSize, tiles, paths, pathHeat, showTiles, showHeatMap, showDebugLines]);
 
     return <canvas ref={canvasRef} width={gridSizeX * gridRenderSize} height={gridSizeY * gridRenderSize}/>;
 }
@@ -117,10 +118,9 @@ function drawLines(ctx: CanvasRenderingContext2D, width: number, height: number,
     //      Other option we could change the end cap size to note cost? Might have to toy with it but should be configurable in UI
 
     const sortedLines = [...lines].sort((a, b) => {
-        if(!isDefined(a.index)) {
+        if (!isDefined(a.index)) {
             return isDefined(b.index) ? -1 : 0;
-        }
-        else if(!isDefined(b.index)) {
+        } else if (!isDefined(b.index)) {
             return isDefined(a.index) ? 1 : 0;
         }
         return a.index - b.index
@@ -144,13 +144,13 @@ function drawLines(ctx: CanvasRenderingContext2D, width: number, height: number,
 }
 
 
-function drawHeatMap(ctx: CanvasRenderingContext2D, width: number, height: number, gridRenderSize: number, heatMapHits: number[][]) {
+function drawHeatMap(ctx: CanvasRenderingContext2D, width: number, height: number, gridRenderSize: number, heatMap: Map2D<number>) {
 
-    for (let y = 0; y < heatMapHits.length; y++) {
-        const row = heatMapHits[y];
-        if (row !== null && row !== undefined) {
-            for (let x = 0; x < row.length; x++) {
-                drawHeatTile(ctx, x, y, gridRenderSize, row[x]);
+    for (let y = heatMap.start.y; y <= heatMap.end.y; y++) {
+        for (let x = heatMap.start.x; x <= heatMap.end.x; x++) {
+            const data = getTileData(x, y, heatMap);
+            if(isDefined(data)) {
+                drawHeatTile(ctx, x, y, gridRenderSize, data);
             }
         }
     }

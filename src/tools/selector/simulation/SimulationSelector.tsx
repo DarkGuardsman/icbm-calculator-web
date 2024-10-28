@@ -59,7 +59,9 @@ const testOptions: TestTypeEntry[] = [
                         {
                             x,
                             y,
-                            newTile: tileToUse?.index === undefined ? TILE_AIR.index : tileToUse.index,
+                            edit: {
+                                newTile: tileToUse?.index === undefined ? TILE_AIR.index : tileToUse.index,
+                            },
                             index: incrementSimEdit(),
                             meta: {
                                 source: {
@@ -80,7 +82,6 @@ const testOptions: TestTypeEntry[] = [
 export interface SimulationSelectorProps {
     gridSizeX: number;
     gridSizeY: number;
-    addHeatMapHit: (x: number, y: number, hits: number) => void;
     onRun: () => void;
     hasRun: boolean;
 }

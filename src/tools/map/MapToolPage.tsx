@@ -21,15 +21,11 @@ export function incrementSimEdit() :number {
 
 export default function MapToolPage() {
 
-    const tiles = useSelector(selectTiles);
     const dispatch = useDispatch();
 
     const [sizeX, setSizeX] = useState(CHUNK_SIZE * 2);
     const [sizeY, setSizeY] = useState(CHUNK_SIZE * 2);
     const [renderSize, setRenderSize] = useState(20);
-
-    //const [edits, setEdits] = useState([]); TODO store edits using a reducer
-    const [heatMapHits, setHeatMapHits] = useState<number[][]>([]);
 
     const [hasRun, setHasRun] = useState(false);
     const [showTiles, setShowTiles] = useState(true);
@@ -38,21 +34,11 @@ export default function MapToolPage() {
 
     const [modifiers, setModifiers] = useState<IMapModifier[]>([]);
 
-    const addHeatMapHit = (x: number, y: number, hits: number) => {
-        setHeatMapHits(prev => {
-            const newHeatMap = prev === undefined ? [] : [...prev];
-            newHeatMap[y] = newHeatMap[y] === undefined ? [] : [...newHeatMap[y]];
-            newHeatMap[y][x] = newHeatMap[y][x] === undefined ? hits: newHeatMap[y][x] + hits;
-            return newHeatMap;
-        });
-    }
-
     const generateMap = () => {
         simEditIndex = 0;
 
         setHasRun(false);
         dispatch(clearTiles());
-        setHeatMapHits([]);
 
         const edits: SimEntryMap2D = initEdits();
 
@@ -160,11 +146,9 @@ export default function MapToolPage() {
                                 showTiles={showTiles}
                                 showDebugLines={showDebugLines}
                                 showHeatMap={showHeatMap}
-                                tiles={tiles}
                                 gridSizeX={sizeX}
                                 gridSizeY={sizeY}
                                 gridRenderSize={renderSize}
-                                heatMapHits={showHeatMap ? heatMapHits: []}
                             />
                         </div>
                     </div>
@@ -207,7 +191,6 @@ export default function MapToolPage() {
                     <SimulationSelector
                         hasRun={hasRun}
                         onRun={() => setHasRun(true)}
-                        addHeatMapHit={addHeatMapHit}
                         gridSizeX={sizeX}
                         gridSizeY={sizeY}
                     />

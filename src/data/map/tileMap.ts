@@ -7,10 +7,15 @@ import PathData2D from "../../api/PathData2D";
 import {getTileData, setTileData} from "../../funcs/TileFuncs";
 
 export interface TileMapState {
+    /** Tiles to render on the grid */
     tiles: TileMap2D;
 
     // TODO move to different slices that share the same reducer key (separation of concerns)
+    /** Array of paths taken by the simulation */
     paths: PathData2D[];
+
+    /** Number of path end points at a given point */
+    pathHeat: Map2D<number>;
 }
 
 const initialState: TileMapState = {
@@ -25,7 +30,18 @@ const initialState: TileMapState = {
             y: 0
         }
     },
-    paths: []
+    paths: [],
+    pathHeat: {
+        data: {},
+        start: {
+            x: 0,
+            y: 0
+        },
+        end: {
+            x: 0,
+            y: 0
+        }
+    }
 }
 
 export const tileMapSlice = createSlice({
@@ -37,6 +53,7 @@ export const tileMapSlice = createSlice({
             const editMap = action.payload;
             state.tiles = mergeEdits<number>(state.tiles, editMap, (edits) => [...edits].reverse().find(e => isDefined(e?.edit?.newTile))?.edit?.newTile); //TODO write custom function to walk backwards
             state.paths = collectPaths(state.paths, editMap);
+            state.pathHeat = mergeEdits<number>(state.tiles, editMap, (edits, prev) => (prev ? prev : 0) + edits.filter(e => isDefined(e.meta.path)).length)
 
             console.log(editMap, state.tiles, state.paths);
         },
@@ -93,7 +110,7 @@ function collectPaths(existingPaths: PathData2D[], editMap: SimEntryMap2D) {
     return paths;
 }
 
-function mergeEdits<T>(oldMap: Map2D<T>, editMap: SimEntryMap2D, dataAccessor: (edits: MapSimEntry2D[]) => T|undefined): Map2D<T> {
+function mergeEdits<T>(oldMap: Map2D<T>, editMap: SimEntryMap2D, dataAccessor: (edits: MapSimEntry2D[], prev: T) => T|undefined): Map2D<T> {
     const newMap = {
         data: {...oldMap.data},
         start: {
@@ -118,7 +135,7 @@ function mergeEdits<T>(oldMap: Map2D<T>, editMap: SimEntryMap2D, dataAccessor: (
                 if (edits[y][x]?.length > 0) {
                     const edits = getTileData(x, y, editMap);
                     if (isDefined(edits)) {
-                        const valueToSet = dataAccessor(edits);
+                        const valueToSet = dataAccessor(edits, tiles[y][x]);
                         if(isDefined(valueToSet)) {
                             tiles[y][x] = valueToSet;
                         }
@@ -143,5 +160,6 @@ export const {applySimEntry, applySimEntries, clearTiles} = tileMapSlice.actions
 
 export const selectTiles = (state: RootState) => state.map2D.tiles;
 export const selectPaths = (state: RootState) => state.map2D.paths;
+export const selectPathHeat = (state: RootState) => state.map2D.pathHeat;
 
 export default tileMapSlice.reducer;
