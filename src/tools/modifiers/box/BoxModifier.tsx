@@ -5,7 +5,7 @@ import ModifierCard from "../card/ModifierCard";
 import Select, {SingleValue} from "react-select";
 import styles from "./BoxModifier.module.css"
 import {CHUNK_SIZE} from "../../../common/Consts";
-import {TILE_ID_TO_OBJ, TILE_SET, TileData} from "../../../common/Tiles";
+import {TILE_AIR, TILE_ID_TO_OBJ, TILE_SET, TileData} from "../../../common/Tiles";
 
 export interface BoxModifierProps {
     index: number;
@@ -41,16 +41,16 @@ export default function BoxModifier(props: BoxModifierProps): React.JSX.Element 
         const tiles = [...modifier.args.tiles];
         tiles.push({id: 0, rate: 0});
 
-        setValue({...modifier.args, tiles: map});
+        setValue({...modifier.args, tiles});
     };
 
     const setTileId = (tile: SingleValue<TileData>, tileIndex: number) => {
         const tiles = [...modifier.args.tiles];
         tiles[tileIndex] = {
             ...tiles[tileIndex],
-            id: tile?.index !== undefined ? tile.index : 0,
+            id: tile?.index !== undefined ? tile.index : TILE_AIR.index,
         };
-        setValue({...modifier.args, tiles: map});
+        setValue({...modifier.args, tiles});
     };
 
     const setTileRate = (rate: string, tileIndex: number) => {
@@ -59,7 +59,7 @@ export default function BoxModifier(props: BoxModifierProps): React.JSX.Element 
             ...tiles[tileIndex],
             rate: Math.max(0, Math.min(1, Number.parseFloat(rate)))
         };
-        setValue({...modifier.args, tiles: map});
+        setValue({...modifier.args, tiles});
     }
 
     return (
