@@ -6,7 +6,6 @@ import {selectPathHeat, selectPaths, selectTiles} from "../data/map/tileMap";
 import Map2D, {TileMap2D} from "../api/Map2D";
 import PathData2D from "../api/PathData2D";
 import {getTile, getTileData} from "../funcs/TileFuncs";
-import assert from "node:assert";
 import {isDefined} from "../funcs/Helpers";
 
 export interface GraphPaperProps {
@@ -124,21 +123,48 @@ function drawLines(ctx: CanvasRenderingContext2D, width: number, height: number,
             return isDefined(a.index) ? 1 : 0;
         }
         return a.index - b.index
-    });
+    }).reverse();
     sortedLines.forEach((line) => {
 
+        const arrowSize = gridRenderSize * dotSize * 3;
+        const lineOffset =  arrowSize / 3;
+
+        const sx = line.start.x * gridRenderSize;
+        const sy = line.start.y * gridRenderSize;
+        const ex = line.end.x * gridRenderSize;
+        const ey = line.end.y * gridRenderSize
+
+        const angle = Math.atan2(ey - sy, ex - sx);
+
+        // Start Cap
+        ctx.beginPath();
+        ctx.arc(sx, sy, lineSize * gridRenderSize / 1.5, 0, 2 * Math.PI);
+        ctx.fillStyle = 'black';
+        ctx.fill();
+
         // Line
+        ctx.beginPath();
+        ctx.moveTo(sx, sy);
+        ctx.lineTo(ex - lineOffset * Math.cos(angle), ey - lineOffset * Math.sin(angle));
         ctx.strokeStyle = 'black'; //TODO generate random color per source phase and store in state
         ctx.lineWidth = lineSize * gridRenderSize;
-        ctx.beginPath();
-        ctx.moveTo(line.start.x * gridRenderSize, line.start.y * gridRenderSize);
-        ctx.lineTo(line.end.x * gridRenderSize, line.end.y * gridRenderSize);
         ctx.stroke();
 
-        // End Cap TODO make arrow showing vector
+
+
+        // End Cap TODO add toggle (user and code[vector<arrow>,directionless<dot>]) to flip between different end caps
+        //ctx.beginPath();
+        //ctx.arc(line.end.x * gridRenderSize, line.end.y * gridRenderSize, dotSize * gridRenderSize, 0, 2 * Math.PI);
+        //ctx.fillStyle = 'grey'; //TODO generate random color per source phase and store in state
+        //ctx.fill();
+
+        // Arrow
+        ctx.fillStyle = 'grey';
         ctx.beginPath();
-        ctx.arc(line.end.x * gridRenderSize, line.end.y * gridRenderSize, dotSize * gridRenderSize, 0, 2 * Math.PI);
-        ctx.fillStyle = 'grey'; //TODO generate random color per source phase and store in state
+        ctx.moveTo(ex, ey);
+        ctx.lineTo(ex - arrowSize * Math.cos(angle - Math.PI / 6), ey - arrowSize * Math.sin(angle - Math.PI / 6));
+        ctx.lineTo(ex - arrowSize * Math.cos(angle + Math.PI / 6), ey - arrowSize * Math.sin(angle + Math.PI / 6));
+        ctx.closePath();
         ctx.fill();
     });
 }
