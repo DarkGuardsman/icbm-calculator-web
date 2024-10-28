@@ -1,4 +1,5 @@
 import {useMemo} from "react";
+import {isDefined} from "../../funcs/Helpers";
 
 export interface NumericIncrementerProps {
     value: number;
@@ -15,11 +16,14 @@ export default function NumericIncrementer({value, whole = true, setValue, incre
         setValue(whole ? Math.floor(value) : value);
     }
 
+    const renderValue = useMemo(() => isDefined(value) ? value : 0, [value])
+
     return (
         <div>
             {
                 reversedIncrement.map(increment => (
                     <button
+                        key={`increment-minus-${increment}`}
                         onClick={() => setValue(value - increment)}
                     >
                         -{increment}
@@ -29,12 +33,13 @@ export default function NumericIncrementer({value, whole = true, setValue, incre
             <input
                 type="number"
                 step={increments[0]}
-                value={value}
+                value={renderValue}
                 onChange={handleChangeX}
             />
             {
                 increments.map(increment => (
                     <button
+                        key={`increment-plus-${increment}`}
                         onClick={() => setValue(value + increment)}
                     >
                         +{increment}
