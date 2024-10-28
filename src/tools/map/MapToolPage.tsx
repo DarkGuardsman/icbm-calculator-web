@@ -9,9 +9,9 @@ import BoxModifier, {IBoxGenerator, ITileGenData} from "../modifiers/box/BoxModi
 import {CHUNK_SIZE} from "../../common/Consts";
 import SimulationSelector from "../selector/simulation/SimulationSelector";
 import {useDispatch, useSelector} from "react-redux";
-import {applyMapEdits, clearTiles, selectTiles} from "../../data/map/tileMap";
+import {applySimEntries, clearTiles, selectTiles} from "../../data/map/tileMap";
 import IMapModifier from "../modifiers/types";
-import {initEdits, MapEdits2D} from "../../api/Map2D";
+import {initEdits, SimEntryMap2D} from "../../api/Map2D";
 import {isDefined} from "../../funcs/Helpers";
 
 let simEditIndex = 0;
@@ -68,14 +68,14 @@ export default function MapToolPage() {
         setDots([]);
         setLines([]);
 
-        const edits: MapEdits2D = initEdits();
+        const edits: SimEntryMap2D = initEdits();
 
         // Fill map with air
         let editIndex = 0;
         fillTiles(edits, 0, 0, sizeX, sizeY, (x, y) => ({
             x, y,
             index: incrementSimEdit(),
-            id: TILE_AIR.index,
+            newTile: TILE_AIR.index,
             meta: {
                 source: {
                     key: "init",
@@ -95,7 +95,7 @@ export default function MapToolPage() {
                 fillTiles(edits, args.x, args.y, args.width, args.height, (x, y) => ({
                    x, y,
                     index: incrementSimEdit(),
-                    id: getRandomTile(possibleTiles),
+                    newTile: getRandomTile(possibleTiles),
                     meta: {
                        source: {
                            key : `box-${mIndex}`,
@@ -107,7 +107,7 @@ export default function MapToolPage() {
             }
         });
 
-        dispatch(applyMapEdits(edits));
+        dispatch(applySimEntries(edits));
     };
 
     const applyModifiers = (modifier: IMapModifier, index: number) => {
@@ -128,7 +128,7 @@ export default function MapToolPage() {
                 y: 0,
                 width: 5,
                 height: 5,
-                tiles: [
+                map: [
                     {
                         id: TILE_AIR.index
                     }

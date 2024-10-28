@@ -1,32 +1,15 @@
 import React, {useEffect, useRef} from 'react';
-import {TILE_ID_TO_OBJ, TileData} from "../common/Tiles";
+import {TileData} from "../common/Tiles";
 import {CHUNK_SIZE} from "../common/Consts";
 import {useSelector} from "react-redux";
-import {getTile, selectTiles} from "../data/map/tileMap";
+import {selectPaths, selectTiles} from "../data/map/tileMap";
 import {TileMap2D} from "../api/Map2D";
-import {isDefined} from "../funcs/Helpers";
-
-export interface DebugLineData {
-    startX: number;
-    startY: number;
-    endX: number;
-    endY: number;
-    color: string;
-    size: number;
-}
-
-export interface DebugDotData {
-    x: number;
-    y: number;
-    size: number;
-    color: string;
-}
+import PathData2D from "../api/PathData2D";
+import {getTile} from "../funcs/TileFuncs";
 
 export interface GraphPaperProps {
     tiles: TileMap2D;
     heatMapHits: number[][];
-    lines: DebugLineData[];
-    dots: DebugDotData[];
     gridSizeX: number;
     gridSizeY: number;
     gridRenderSize: number;
@@ -36,14 +19,14 @@ export interface GraphPaperProps {
     showHeatMap: boolean;
 }
 
-export default function GraphPaper({
-                                       lines, dots, heatMapHits,
+export default function GraphPaper({ heatMapHits,
                                        gridSizeX, gridSizeY, gridRenderSize = 10,
                                        showTiles, showDebugLines, showHeatMap
                                    }: GraphPaperProps): React.JSX.Element {
     const canvasRef = useRef<HTMLCanvasElement>(null);
 
     const tiles = useSelector(selectTiles);
+    const paths = useSelector(selectPaths);
 
     useEffect(() => {
         const canvas = canvasRef.current;
@@ -64,16 +47,17 @@ export default function GraphPaper({
         if (showTiles) {
             drawTiles(ctx, width, height, gridRenderSize, tiles);
         }
-        drawGrid(ctx, width, height, gridRenderSize);
         if (showHeatMap) {
             drawHeatMap(ctx, width, height, gridRenderSize, heatMapHits);
         }
+
+        drawGrid(ctx, width, height, gridRenderSize);
+
         if (showDebugLines) {
-            drawLines(ctx, width, height, gridRenderSize, lines);
-            drawDots(ctx, width, height, gridRenderSize, dots);
+            drawLines(ctx, width, height, gridRenderSize, paths);
         }
 
-    }, [canvasRef, gridSizeX, gridSizeY, gridRenderSize, tiles, lines, dots, heatMapHits, showTiles, showHeatMap, showDebugLines]);
+    }, [canvasRef, gridSizeX, gridSizeY, gridRenderSize, tiles, paths, heatMapHits, showTiles, showHeatMap, showDebugLines]);
 
     return <canvas ref={canvasRef} width={gridSizeX * gridRenderSize} height={gridSizeY * gridRenderSize}/>;
 }
@@ -120,22 +104,30 @@ function drawGrid(ctx: CanvasRenderingContext2D, width: number, height: number, 
     }
 }
 
-function drawLines(ctx: CanvasRenderingContext2D, width: number, height: number, gridRenderSize: number, lines: DebugLineData[]) {
-    lines.forEach((line) => {
-        ctx.strokeStyle = line.color;
-        ctx.lineWidth = line.size * gridRenderSize;
-        ctx.beginPath();
-        ctx.moveTo(line.startX * gridRenderSize, line.startY * gridRenderSize);
-        ctx.lineTo(line.endX * gridRenderSize, line.endY * gridRenderSize);
-        ctx.stroke();
-    });
-}
+function drawLines(ctx: CanvasRenderingContext2D, width: number, height: number, gridRenderSize: number, lines: PathData2D[]) {
 
-function drawDots(ctx: CanvasRenderingContext2D, width: number, height: number, gridRenderSize: number, dots: DebugDotData[]) {
-    dots.forEach((dot) => {
+    const lineSize = 0.05; //TODO set via UI
+    const dotSize = 0.1;
+
+    // TODO add logic to recolor and resize lines based on energy
+    //      Idea would be the line gets smaller the less energy exists
+    //      Then the color would change to note cost of energy... for visual friendliness we might want 2 lines (outside for total energy, inside for energy cost?)
+    //      Other option we could change the end cap size to note cost? Might have to toy with it but should be configurable in UI
+
+    lines.forEach((line) => {
+
+        // Line
+        ctx.strokeStyle = 'black'; //TODO generate random color per source phase and store in state
+        ctx.lineWidth = lineSize * gridRenderSize;
         ctx.beginPath();
-        ctx.arc(dot.x * gridRenderSize, dot.y * gridRenderSize, dot.size * gridRenderSize, 0, 2 * Math.PI);
-        ctx.fillStyle = dot.color;
+        ctx.moveTo(line.start.x * gridRenderSize, line.start.y * gridRenderSize);
+        ctx.lineTo(line.end.x * gridRenderSize, line.end.y * gridRenderSize);
+        ctx.stroke();
+
+        // End Cap TODO make arrow showing vector
+        ctx.beginPath();
+        ctx.arc(line.end.x * gridRenderSize, line.end.y * gridRenderSize, dotSize * gridRenderSize, 0, 2 * Math.PI);
+        ctx.fillStyle = 'black'; //TODO generate random color per source phase and store in state
         ctx.fill();
     });
 }

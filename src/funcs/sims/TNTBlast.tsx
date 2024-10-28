@@ -1,18 +1,13 @@
-import {DebugDotData, DebugLineData} from "../../graph/GraphRender";
 import {valueOr} from "../Helpers";
 import {
     SimulationSelectorProps,
     TestArgValues,
     TestTypeEntry
 } from "../../tools/selector/simulation/SimulationSelector";
-import {getExplosiveResistance, TILE_AIR} from "../../common/Tiles";
-import {
-    addEdit,
-    getTile,
-    getTileId,
-} from "../../data/map/tileMap";
-import {initEdits, MapEdits2D, TileMap2D} from "../../api/Map2D";
+import {getExplosiveResistance, TILE_AIR, TILE_VOID} from "../../common/Tiles";
+import {initEdits, SimEntryMap2D, TileMap2D} from "../../api/Map2D";
 import {incrementSimEdit} from "../../tools/map/MapToolPage";
+import {addSimEntry, getTile, getTileId} from "../TileFuncs";
 
 export interface TNTBlastConfig {
     size?: number;
@@ -28,47 +23,24 @@ export interface TNTBlastConfig {
 
 export function tntBlast(cx: number, cz: number,
                          tileMapGrid: TileMap2D,
-                         applyEdits: (edits: MapEdits2D) => void,
-                         addDot: (dot: DebugDotData) => void,
-                         addLine: (line: DebugLineData) => void,
-                         addHeatMapHit: (x: number, y: number, hits: number) => void,
+                         applyEdits: (edits: SimEntryMap2D) => void,
                          config?: TNTBlastConfig
 ) {
 
     const normalize = valueOr<boolean>(config?.normalize, true);
     const randomRayEnergy = valueOr<boolean>(config?.randomRayEnergy, true);
-    const rayStartEnergy = valueOr<number>(config?.size, 6);
-    const stepEnergyScale = valueOr<number>(config?.stepEnergy, 0.225);
+    const size = valueOr<number>(config?.size, 6);
+    const stepEnergy = valueOr<number>(config?.stepEnergy, 0.225);
     const stepSize = valueOr<number>(config?.stepSize, 0.3);
     const raysX = valueOr<number>(config?.raysX, 16);
     const raysY = valueOr<number>(config?.raysY, 16);
     const minEnergyCost = valueOr<number>(config?.minEnergyCost, 0.3);
     const scaleEnergyCost = valueOr<number>(config?.scaleEnergyCost, 0.3);
 
-    addDot({
-        x: cx, y: cz,
-        size: 0.1,
-        color: 'blue'
-    });
-
 
     const sourceId = `TNT-${Date.now()}`;
     let editIndex = 0;
-    const edits: MapEdits2D = initEdits();
-    addEdit(edits,  {
-        //Remove center
-        x: Math.floor(cx),
-        y: Math.floor(cz),
-        id: getTileId(Math.floor(cx), Math.floor(cz), tileMapGrid),
-        index: incrementSimEdit(),
-        meta: {
-            source: {
-                key: sourceId,
-                phase: 'init',
-                index: editIndex++
-            }
-        }
-    });
+    const edits: SimEntryMap2D = initEdits();
 
     // This code mimics mojang's 1.12.2 TNT blast and is not very optimized
     for (let xs = 0; xs < raysX; ++xs) {
@@ -91,7 +63,7 @@ export function tntBlast(cx: number, cz: number,
                 }
 
                 //Get energy
-                let radialEnergy = rayStartEnergy;
+                let radialEnergy = size;
                 if (randomRayEnergy) {
                     radialEnergy *= 0.7 + Math.random() * 0.6;
                 }
@@ -101,93 +73,70 @@ export function tntBlast(cx: number, cz: number,
                 //double y = this.location.y();
                 let z = cz;
 
-                //final Color lineColor = Utils.randomColor();  //TODO random color
-
-                for (; radialEnergy > 0.0; radialEnergy -= stepEnergyScale) {
+                for (; radialEnergy > 0.0; radialEnergy -= stepEnergy) {
 
                     const tileX = Math.floor(x);
                     const tileY = Math.floor(z);
 
-                    if ((tileX !== Math.floor(cx) || tileY !== Math.floor(cz))) { //TODO remove center block
-                        const tile = getTile(tileX, tileY, tileMapGrid);
-                        if (tile !== TILE_AIR) {
-                            const explosiveResistance = getExplosiveResistance(tile);
+                    const tile = getTile(tileX, tileY, tileMapGrid);
 
+                    const explosiveResistance = getExplosiveResistance(tile);
 
-                            // min energy is likely to offset zero hardness blocks like tall grass
-                            // scaleEnergyCost is likely the same value as stepSize. Both are 0.3~ in the code.
-                            //              Given we step 0.3 we hit the same both per ray on average 3 times
-                            const cost = (explosiveResistance + minEnergyCost) * scaleEnergyCost;
-                            if ((radialEnergy - cost) > 0) {
-                                addEdit(edits, {
-                                    x: tileX,
-                                    y: tileY,
-                                    id: tile.index,
-                                    index: incrementSimEdit(),
-                                    meta: {
-                                        source: {
-                                            key: sourceId,
-                                            phase: `ray-${xs}-${zs}`,
-                                            index: editIndex++
-                                        },
-                                        ray: {
-                                            start: {
-                                                x,
-                                                y: z
-                                            },
-                                            end: {
-                                                x: x + xStep * stepSize,
-                                                y: z + zStep * stepSize
-                                            },
-                                            meta: {
-                                                energyLeft: radialEnergy - cost,
-                                                energyCost: cost
-                                            }
-                                        }
-                                    }
-                                })
-                                radialEnergy -= cost
-                            }
-                            // Out of energy
-                            else {
-                                continue;
-                            }
+                    let cost = 0;
+
+                    if(tile !== TILE_AIR) {
+                        // min energy is likely to offset zero hardness blocks like tall grass
+                        // scaleEnergyCost is likely the same value as stepSize. Both are 0.3~ in the code.
+                        //              Given we step 0.3 we hit the same both per ray on average 3 times
+                        cost = (explosiveResistance + minEnergyCost) * scaleEnergyCost;
+                        if ((radialEnergy - cost) > 0) {
+                            radialEnergy -= cost
                         }
                     }
 
-
-                    // Debug visuals TODO migrate to reducer that uses the edit metadata
-                    addDot({
-                        x: x + xStep * stepSize,
-                        y: z + zStep * stepSize,
-                        size: 0.11,
-                        color: 'blue' //TODO random color
-                    });
-                    addLine({
-                        startX: x,
-                        startY: z,
-                        endX: x + xStep * stepSize,
-                        endY: z + zStep * stepSize,
-                        size: 0.05,
-                        color: 'red' //TODO random color
-                    });
+                    addSimEntry(edits, {
+                        x: tileX,
+                        y: tileY,
+                        index: incrementSimEdit(),
+                        edit: tile === TILE_AIR ? undefined : {
+                            newTile: TILE_AIR.index,
+                            oldTile: tile.index
+                        },
+                        meta: {
+                            source: {
+                                key: sourceId,
+                                phase: `ray-${xs}-${zs}`,
+                                index: editIndex++
+                            },
+                            path: {
+                                start: {
+                                    x,
+                                    y: z
+                                },
+                                end: {
+                                    x: x + xStep * stepSize,
+                                    y: z + zStep * stepSize
+                                },
+                                meta: {
+                                    energyLeft: radialEnergy - cost,
+                                    energyCost: cost
+                                }
+                            }
+                        }
+                    })
 
                     //Iterate location
                     x += xStep * stepSize;
                     //y += yStep * step;
                     z += zStep * stepSize;
-
-                    // Track ray trace heat
-                    addHeatMapHit(tileX, tileY, 1); //TODO calculate in reducer using edit metadata
                 }
-
-
             }
         }
     }
 
     //Done
     applyEdits(edits);
+    console.log('TNT', edits);
 }
 
 export const TNT_SIM_ENTRY: TestTypeEntry = {
@@ -197,12 +146,12 @@ export const TNT_SIM_ENTRY: TestTypeEntry = {
         x: {
             label: "X",
             type: "float",
-            default: 4.5
+            default: 7.5
         },
         y: {
             label: "Y",
             type: "float",
-            default: 4.5
+            default: 7.5
         },
         raysX: {
             label: "Rays X",
@@ -250,7 +199,7 @@ export const TNT_SIM_ENTRY: TestTypeEntry = {
             default: 0.3
         }
     },
-    runner: (props: SimulationSelectorProps, tileMapGrid: TileMap2D, applyEdits: (edits: MapEdits2D) => void, args: TestArgValues) => {
+    runner: (_: SimulationSelectorProps, tileMapGrid: TileMap2D, applyEdits: (edits: SimEntryMap2D) => void, args: TestArgValues) => {
         const x = args['x'] as number;
         const y = args['y'] as number;
         const raysX = args['raysX'] as number;
@@ -262,7 +211,7 @@ export const TNT_SIM_ENTRY: TestTypeEntry = {
         const randomRayEnergy = args['randomRayEnergy'] as boolean;
         const minEnergyCost = args['minEnergyCost'] as number;
         const scaleEnergyCost = args['scaleEnergyCost'] as number;
-        tntBlast(x, y, tileMapGrid, applyEdits, props.addDot, props.addLine, props.addHeatMapHit, {
+        tntBlast(x, y, tileMapGrid, applyEdits, {
             size,
             normalize,
             randomRayEnergy,

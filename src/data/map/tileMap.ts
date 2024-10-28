@@ -1,12 +1,16 @@
 import {createSlice, PayloadAction} from "@reduxjs/toolkit";
 import {RootState} from "../store";
-import {isDefined, valueOr} from "../../funcs/Helpers";
-import {TILE_AIR, TILE_ID_TO_OBJ} from "../../common/Tiles";
-import MapEdit2D from "../../api/MapEdit2D";
-import Map2D, {MapEdits2D, TileMap2D} from "../../api/Map2D";
+import {isDefined} from "../../funcs/Helpers";
+import MapSimEntry2D from "../../api/MapSimEntry2D";
+import Map2D, {SimEntryMap2D, TileMap2D} from "../../api/Map2D";
+import PathData2D from "../../api/PathData2D";
+import {getTileData, setTileData} from "../../funcs/TileFuncs";
 
 export interface TileMapState {
     tiles: TileMap2D;
+
+    // TODO move to different slices that share the same reducer key (separation of concerns)
+    paths: PathData2D[];
 }
 
 const initialState: TileMapState = {
@@ -20,43 +24,21 @@ const initialState: TileMapState = {
             x: 0,
             y: 0
         }
-    }
+    },
+    paths: []
 }
 
 export const tileMapSlice = createSlice({
     name: 'tiles',
     initialState,
     reducers: {
-        applyMapEdit: (state: TileMapState, action: PayloadAction<MapEdit2D>) => applyEdit(state, action.payload),
-        applyMapEdits: (state: TileMapState, action: PayloadAction<MapEdits2D>) => {
+        applySimEntry: (state: TileMapState, action: PayloadAction<MapSimEntry2D>) => applyEdit(state, action.payload),
+        applySimEntries: (state: TileMapState, action: PayloadAction<SimEntryMap2D>) => {
             const editMap = action.payload;
+            state.tiles = mergeEdits<number>(state.tiles, editMap, (edits) => [...edits].reverse().find(e => isDefined(e?.edit?.newTile))?.edit?.newTile); //TODO write custom function to walk backwards
+            state.paths = collectPaths(state.paths, editMap);
 
-            state.tiles = {
-                data: {...state.tiles.data},
-                start: {
-                    x: Math.min(state.tiles.start.x, editMap.start.x),
-                    y: Math.min(state.tiles.start.y, editMap.start.y)
-                },
-                end: {
-                    x: Math.max(state.tiles.end.x, editMap.end.x),
-                    y: Math.max(state.tiles.end.y, editMap.end.y)
-                },
-            };
-
-            const tiles = state.tiles.data;
-            const edits = editMap.data;
-            Object.keys(edits)
-                .forEach(yKey => {
-                    const y = yKey as unknown as number;
-                    tiles[y] = {...tiles[y]};
-
-                    Object.keys(edits[y]).forEach(xKey => {
-                        const x = xKey as unknown as number;
-                        if (edits[y][x]?.length > 0) {
-                            tiles[y][x] = edits[y][x][edits[y][x].length - 1].id;
-                        }
-                    });
-                });
+            console.log(editMap, state.tiles, state.paths);
         },
         clearTiles: (state) => {
             state.tiles = {
@@ -70,88 +52,95 @@ export const tileMapSlice = createSlice({
                     y: 0
                 }
             };
+            state.paths = [];
         }
     }
 });
 
-function applyEdit(state: TileMapState, edit: MapEdit2D) {
-    const {x, y, id} = edit;
-    const newTiles = {...state.tiles};
-    setTileData(x, y, id, newTiles);
-    state.tiles = newTiles;
+function collectPaths(existingPaths: PathData2D[], editMap: SimEntryMap2D) {
+
+    const paths = [...existingPaths];
+    const edits = editMap.data;
+    Object.keys(edits)
+        .forEach(yKey => {
+            const y = yKey as unknown as number;
+
+            Object.keys(edits[y]).forEach(xKey => {
+                const x = xKey as unknown as number;
+                if (edits[y][x]?.length > 0) {
+                    const edits = getTileData(x, y, editMap);
+                    if (isDefined(edits)) {
+                        edits
+                            .forEach(edit => {
+                                const path = edit.meta?.path
+                                if (isDefined(path)) {
+                                    paths.push({
+                                        ...path,
+                                        //TODO add simEditIndex for sorting
+                                        meta: {
+                                            ...path.meta,
+                                            source: edit.meta.source
+                                        }
+                                    })
+                                }
+                            })
+                    }
+                }
+            });
+        });
+
+    return paths;
 }
 
-/**
- * Adds an edit to the map via mutations... isn't state update safe
- *
- * @param map to mutate
- * @param edit to store
- */
-export function addEdit(map: MapEdits2D, edit: MapEdit2D) {
-
-    // no y
-    if (!isDefined(map.data[edit.y])) {
-        map.data[edit.y] = {
-            [edit.x]: [edit]
-        }
-    }
-    // existing x
-    else if (isDefined(map.data[edit.y][edit.x])) {
-        map.data[edit.y][edit.x].push(edit);
-    }
-    // new x
-    else {
-        map.data[edit.y][edit.x] = [edit];
-    }
-
-    map.start.x = Math.min(map.start.x, edit.x);
-    map.start.y = Math.min(map.start.y, edit.y);
-    map.end.x = Math.max(map.end.x, edit.x);
-    map.end.y = Math.max(map.end.y, edit.y);
-}
-
-export function setTileData<T>(x: number, y: number, data: T, map: Map2D<T>) {
-    if (!isDefined(map.data[y])) {
-        map.data[y] = {
-            [x]: data
-        };
-    } else {
-        map.data[y] = {
-            ...map.data[y],
-            [x]: data
-        };
-    }
-
-    map.start = {
-        x: Math.min(map.start.x, x),
-        y: Math.min(map.start.y, y)
+function mergeEdits<T>(oldMap: Map2D<T>, editMap: SimEntryMap2D, dataAccessor: (edits: MapSimEntry2D[]) => T|undefined): Map2D<T> {
+    const newMap = {
+        data: {...oldMap.data},
+        start: {
+            x: Math.min(oldMap.start.x, editMap.start.x),
+            y: Math.min(oldMap.start.y, editMap.start.y)
+        },
+        end: {
+            x: Math.max(oldMap.end.x, editMap.end.x),
+            y: Math.max(oldMap.end.y, editMap.end.y)
+        },
     };
-    map.end = {
-        x: Math.max(map.end.x, x),
-        y: Math.max(map.end.y, y)
-    };
+
+    const tiles = newMap.data;
+    const edits = editMap.data;
+    Object.keys(edits)
+        .forEach(yKey => {
+            const y = yKey as unknown as number;
+            tiles[y] = {...tiles[y]};
+
+            Object.keys(edits[y]).forEach(xKey => {
+                const x = xKey as unknown as number;
+                if (edits[y][x]?.length > 0) {
+                    const edits = getTileData(x, y, editMap);
+                    if (isDefined(edits)) {
+                        const valueToSet = dataAccessor(edits);
+                        if(isDefined(valueToSet)) {
+                            tiles[y][x] = valueToSet;
+                        }
+                    }
+                }
+            });
+        });
+    return newMap;
 }
 
-export function getTileData<T>(x: number, y: number, grid: Map2D<T>) {
-    if (isDefined(grid.data[y])) {
-        return grid.data[y][x];
+function applyEdit(state: TileMapState, simEntry: MapSimEntry2D) {
+    const {x, y, edit} = simEntry;
+    const newTile = edit?.newTile;
+    if(isDefined(newTile)) {
+        const newTiles = {...state.tiles};
+        setTileData(x, y, newTile, newTiles);
+        state.tiles = newTiles;
     }
-    return undefined;
 }
 
-export function getTileId(x: number, y: number, grid: TileMap2D): number {
-    if (isDefined(grid.data[y])) {
-        return valueOr(grid.data[y][x], TILE_AIR.index);
-    }
-    return TILE_AIR.index;
-}
+export const {applySimEntry, applySimEntries, clearTiles} = tileMapSlice.actions;
 
-export function getTile(x: number, y: number, grid: TileMap2D) {
-    return TILE_ID_TO_OBJ[getTileId(x, y, grid)];
-}
-
-export const {applyMapEdit, applyMapEdits, clearTiles} = tileMapSlice.actions;
-
-export const selectTiles = (state: RootState) => state.tiles.tiles;
+export const selectTiles = (state: RootState) => state.map2D.tiles;
+export const selectPaths = (state: RootState) => state.map2D.paths;
 
 export default tileMapSlice.reducer;

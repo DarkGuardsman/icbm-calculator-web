@@ -41,7 +41,7 @@ export default function BoxModifier(props: BoxModifierProps): React.JSX.Element 
         const tiles = [...modifier.args.tiles];
         tiles.push({id: 0, rate: 0});
 
-        setValue({...modifier.args, tiles});
+        setValue({...modifier.args, tiles: map});
     };
 
     const setTileId = (tile: SingleValue<TileData>, tileIndex: number) => {
@@ -50,7 +50,7 @@ export default function BoxModifier(props: BoxModifierProps): React.JSX.Element 
             ...tiles[tileIndex],
             id: tile?.index !== undefined ? tile.index : 0,
         };
-        setValue({...modifier.args, tiles});
+        setValue({...modifier.args, tiles: map});
     };
 
     const setTileRate = (rate: string, tileIndex: number) => {
@@ -59,7 +59,7 @@ export default function BoxModifier(props: BoxModifierProps): React.JSX.Element 
             ...tiles[tileIndex],
             rate: Math.max(0, Math.min(1, Number.parseFloat(rate)))
         };
-        setValue({...modifier.args, tiles});
+        setValue({...modifier.args, tiles: map});
     }
 
     return (

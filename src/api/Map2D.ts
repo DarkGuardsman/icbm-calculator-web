@@ -1,4 +1,4 @@
-import MapEdit2D from "./MapEdit2D";
+import SimEntry2D from "./MapSimEntry2D";
 import Pos2D from "./Pos2D";
 
 export default interface Map2D<T> {
@@ -8,9 +8,9 @@ export default interface Map2D<T> {
 }
 
 export interface TileMap2D extends Map2D<number> {}
-export interface MapEdits2D extends Map2D<MapEdit2D[]> {}
+export interface SimEntryMap2D extends Map2D<SimEntry2D[]> {}
 
-export function initEdits(): MapEdits2D {
+export function initEdits(): SimEntryMap2D {
     return {
         data: {},
         start: {

@@ -11,6 +11,12 @@ export interface TileData {
 //      move to react context
 export const TILE_SET: TileData[] = [
     {
+        key: 'void',
+        color: 'rgba(0,0,0,0.21)',
+        resistance: 0,
+        hardness: 0
+    },
+    {
         key: 'minecraft:air',
         color: 'rgb(146,245,243)',
         resistance: 0,
@@ -63,7 +69,7 @@ export const TILE_KEY_TO_OBJ: { [key: string]: TileData } = {};
 TILE_SET.forEach(entry => TILE_KEY_TO_OBJ[entry.key] = entry);
 
 export const TILE_AIR = TILE_KEY_TO_OBJ['minecraft:air'];
-
+export const TILE_VOID = TILE_KEY_TO_OBJ['void'];
 
 export function getExplosiveResistance(tile: TileData): number {
     // Will not understand why mojang sets a value for resistance just to divide it by 5

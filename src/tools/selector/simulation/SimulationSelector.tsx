@@ -2,13 +2,13 @@ import styles from "./SimulationSelector.module.css";
 import Select from "react-select";
 import React, {useEffect, useMemo, useState} from "react";
 import {TILE_AIR, TILE_SET} from "../../../common/Tiles";
-import {DebugDotData, DebugLineData} from "../../../graph/GraphRender";
 import {TNT_SIM_ENTRY} from "../../../funcs/sims/TNTBlast";
 import NumericIncrementer from "../../../components/incrementer/NumericIncrementer";
 import {useDispatch, useSelector} from "react-redux";
-import {addEdit, applyMapEdits, selectTiles, setTileData} from "../../../data/map/tileMap";
-import {initEdits, MapEdits2D, TileMap2D} from "../../../api/Map2D";
+import {applySimEntries, selectTiles} from "../../../data/map/tileMap";
+import {initEdits, SimEntryMap2D, TileMap2D} from "../../../api/Map2D";
 import {incrementSimEdit} from "../../map/MapToolPage";
+import {addSimEntry, setTileData} from "../../../funcs/TileFuncs";
 
 export interface TestArgs {
     [key: string]: {
@@ -33,7 +33,7 @@ export interface TestTypeEntry {
     id: string;
     description: string;
     args: TestArgs;
-    runner: (props: SimulationSelectorProps, tileMapGrid: TileMap2D, applyEdits: (edits: MapEdits2D) => void, args: TestArgValues) => void;
+    runner: (props: SimulationSelectorProps, tileMapGrid: TileMap2D, applyEdits: (edits: SimEntryMap2D) => void, args: TestArgValues) => void;
 }
 
 const testOptions: TestTypeEntry[] = [
@@ -42,8 +42,8 @@ const testOptions: TestTypeEntry[] = [
         id: "random:fill",
         description: "Fills entire map, mostly exists for testing the runtime",
         args: {},
-        runner: (props: SimulationSelectorProps, _: TileMap2D, applyEdits: (edits: MapEdits2D) => void) => {
-            const edits: MapEdits2D = initEdits();
+        runner: (props: SimulationSelectorProps, _: TileMap2D, applyEdits: (edits: SimEntryMap2D) => void) => {
+            const edits: SimEntryMap2D = initEdits();
             const sourceId = `random:fill-${Date.now()}`;
             let editIndex = 0;
 
@@ -55,11 +55,11 @@ const testOptions: TestTypeEntry[] = [
                             const index = Math.floor(Math.random() * (TILE_SET.length - 1));
                             return i === index;
                         });
-                    addEdit(edits,
+                    addSimEntry(edits,
                         {
                             x,
                             y,
-                            id: tileToUse?.index === undefined ? TILE_AIR.index : tileToUse.index,
+                            newTile: tileToUse?.index === undefined ? TILE_AIR.index : tileToUse.index,
                             index: incrementSimEdit(),
                             meta: {
                                 source: {
@@ -80,8 +80,6 @@ const testOptions: TestTypeEntry[] = [
 export interface SimulationSelectorProps {
     gridSizeX: number;
     gridSizeY: number;
-    addDot: (dot: DebugDotData) => void;
-    addLine: (line: DebugLineData) => void;
     addHeatMapHit: (x: number, y: number, hits: number) => void;
     onRun: () => void;
     hasRun: boolean;
@@ -112,7 +110,7 @@ export default function SimulationSelector(props: SimulationSelectorProps) {
         props.onRun();
         console.log(`Running ${testToRun.id} with args`, testArgs);
         const start = performance.now();
-        testToRun.runner(props, tiles, (edits) => dispatch(applyMapEdits(edits)), testArgs);
+        testToRun.runner(props, tiles, (edits) => dispatch(applySimEntries(edits)), testArgs);
         console.log(`Finished ${testToRun.id} in`, performance.now() - start);
 
     };
