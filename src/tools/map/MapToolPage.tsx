@@ -28,9 +28,6 @@ export default function MapToolPage() {
     const [sizeY, setSizeY] = useState(CHUNK_SIZE * 2);
     const [renderSize, setRenderSize] = useState(20);
 
-    const [lines, setLines] = useState<DebugLineData[]>([]);
-    const [dots, setDots] = useState<DebugDotData[]>([]);
-
     //const [edits, setEdits] = useState([]); TODO store edits using a reducer
     const [heatMapHits, setHeatMapHits] = useState<number[][]>([]);
 
@@ -40,15 +37,6 @@ export default function MapToolPage() {
     const [showDebugLines, setShowDebugLines] = useState(true);
 
     const [modifiers, setModifiers] = useState<IMapModifier[]>([]);
-
-
-    const addDot = (dot: DebugDotData) => {
-        setDots(prev => [...prev, dot]);
-    };
-
-    const addLine = (line: DebugLineData) => {
-        setLines(prev => [...prev, line]);
-    };
 
     const addHeatMapHit = (x: number, y: number, hits: number) => {
         setHeatMapHits(prev => {
@@ -65,8 +53,6 @@ export default function MapToolPage() {
         setHasRun(false);
         dispatch(clearTiles());
         setHeatMapHits([]);
-        setDots([]);
-        setLines([]);
 
         const edits: SimEntryMap2D = initEdits();
 
@@ -128,7 +114,7 @@ export default function MapToolPage() {
                 y: 0,
                 width: 5,
                 height: 5,
-                map: [
+                tiles: [
                     {
                         id: TILE_AIR.index
                     }
@@ -175,8 +161,6 @@ export default function MapToolPage() {
                                 showDebugLines={showDebugLines}
                                 showHeatMap={showHeatMap}
                                 tiles={tiles}
-                                dots={dots}
-                                lines={lines}
                                 gridSizeX={sizeX}
                                 gridSizeY={sizeY}
                                 gridRenderSize={renderSize}
@@ -223,8 +207,6 @@ export default function MapToolPage() {
                     <SimulationSelector
                         hasRun={hasRun}
                         onRun={() => setHasRun(true)}
-                        addDot={addDot}
-                        addLine={addLine}
                         addHeatMapHit={addHeatMapHit}
                         gridSizeX={sizeX}
                         gridSizeY={sizeY}
