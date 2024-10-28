@@ -184,11 +184,10 @@ function SimulationArgsSection(props: SimulationArgsSectionProps,): React.JSX.El
                     if (arg.type === 'int') {
                         const value = testArgs[arg.key] as number;
                         return (
-                            <div className={styles.testArg}>
+                            <div className={styles.testArg} key={`test-arg-int-${arg.key}`}>
                                 <div>{arg.label}</div>
                                 <div>
                                     <NumericIncrementer
-                                        key={`arg-${arg.key}`}
                                         whole={true}
                                         value={value}
                                         setValue={(v) => setTestArg(arg.key, v)}
@@ -200,11 +199,10 @@ function SimulationArgsSection(props: SimulationArgsSectionProps,): React.JSX.El
                     } else if (arg.type === 'float') {
                         const value = testArgs[arg.key] as number;
                         return (
-                            <div className={styles.testArg}>
+                            <div className={styles.testArg} key={`test-arg-float-${arg.key}`}>
                                 <div>{arg.label}</div>
                                 <div>
                                     <NumericIncrementer
-                                        key={`arg-${arg.key}`}
                                         whole={false}
                                         value={value}
                                         setValue={(v) => setTestArg(arg.key, v)}
@@ -216,11 +214,10 @@ function SimulationArgsSection(props: SimulationArgsSectionProps,): React.JSX.El
                     } else if (arg.type === 'bool') {
                         const value = testArgs[arg.key] as boolean;
                         return (
-                            <div className={styles.testArg}>
+                            <div className={styles.testArg} key={`test-arg-bool-${arg.key}`}>
                                 <div>{arg.label}</div>
                                 <div>
                                     <input
-                                        key={`arg-${arg.key}`}
                                         type="checkbox"
                                         checked={value}
                                         onChange={(event) => setTestArg(arg.key, !value)}
