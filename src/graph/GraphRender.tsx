@@ -122,12 +122,12 @@ function drawLines(ctx: CanvasRenderingContext2D, width: number, height: number,
     sortedLines.forEach((line) => {
 
         let renderScale = gridRenderSize;
-        if(isDefined(line.meta.energyLeft) && isDefined(largestEnergy)) {
+        if (isDefined(line.meta.energyLeft) && isDefined(largestEnergy)) {
             renderScale -= gridRenderSize * (1 - line.meta.energyLeft / largestEnergy) * 0.8
         }
 
         const arrowSize = renderScale * dotSize * 3;
-        const arrowLineEndOffset =  arrowSize / 3;
+        const arrowLineEndOffset = arrowSize / 3;
         const lineWidth = lineSize * renderScale;
 
         const sx = line.start.x * gridRenderSize;
@@ -171,31 +171,100 @@ function drawLines(ctx: CanvasRenderingContext2D, width: number, height: number,
 
 function drawHeatMap(ctx: CanvasRenderingContext2D, width: number, height: number, gridRenderSize: number, heatMap: Map2D<number>) {
 
+    const heatValues = Object.values(heatMap.data).flatMap(ySet => Object.values(ySet));
+    const range = getNumberRangeExcludingOutliers(getUniqueNumbers(heatValues));
     for (let y = heatMap.start.y; y <= heatMap.end.y; y++) {
         for (let x = heatMap.start.x; x <= heatMap.end.x; x++) {
             const data = getTileData(x, y, heatMap);
-            if(isDefined(data)) {
-                drawHeatTile(ctx, x, y, gridRenderSize, data);
+            if (isDefined(data) && data > 0) {
+                drawHeatTile(ctx, x, y, gridRenderSize, data, range.max);
             }
         }
     }
 }
 
-function drawHeatTile(ctx: CanvasRenderingContext2D, x: number, y: number, gridRenderSize: number, hits: number) {
-    if (hits === null || hits === undefined) {
-        return;
-    }
+function drawHeatTile(ctx: CanvasRenderingContext2D, x: number, y: number, gridRenderSize: number, hits: number, maxValue: number) {
 
-    const val = Math.min(20, Math.max(0, hits)) * 5;
-    const r = Math.floor((255 * val) / 100),
-        g = Math.floor((255 * (100 - val)) / 100) - 150,
-        b = 0;
-
-    ctx.fillStyle = `rgb(${r},${g},${b})`;
+    ctx.fillStyle = getHeatColor(hits, 1, maxValue);
     ctx.fillRect(
         x * gridRenderSize,
         y * gridRenderSize,
         gridRenderSize,
         gridRenderSize
     );
+}
+
+function getHeatColor(value: number, min: number, max: number) {
+    const normalizedValue = (value - min) / (max - min);
+    const ratio = 1 - Math.min(1, normalizedValue);
+    const overRatio = Math.min(1, normalizedValue - Math.min(1, normalizedValue));
+
+    const hue = ratio * 1.2 / 3.60;
+    const color = hslToRgb(hue, 1, .5 - (0.3 * overRatio));
+    return `rgb(${color.red}, ${color.green}, ${color.blue})`;
+}
+
+function hslToRgb(h: number, s: number, l: number) {
+    let r, g, b;
+
+    if (s === 0) {
+        r = g = b = l; // achromatic
+    } else {
+        const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+        const p = 2 * l - q;
+        r = hue2rgb(p, q, h + 1 / 3);
+        g = hue2rgb(p, q, h);
+        b = hue2rgb(p, q, h - 1 / 3);
+    }
+
+    return {
+        red: Math.floor(r * 255),
+        green: Math.floor(g * 255),
+        blue: Math.floor(b * 255)
+    }
+}
+
+function hue2rgb(p: number, q: number, t: number) {
+    if (t < 0) t += 1;
+    if (t > 1) t -= 1;
+    if (t < 1 / 6) return p + (q - p) * 6 * t;
+    if (t < 1 / 2) return q;
+    if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
+    return p;
+}
+
+function getUniqueNumbers(data: number[]) {
+    const heatSet: Set<number> = new Set();
+    data.forEach(v => heatSet.add(v));
+    return Array.from(heatSet);
+}
+
+function getNumberRangeExcludingOutliers(data: number[]): {min: number, max: number} {
+    if (data.length < 4) {
+        return {
+            min: Math.min(...data),
+            max: Math.max(...data)
+        };
+    }
+
+    // Sort the data in ascending order
+    data.sort((a, b) => a - b);
+
+    // Calculate the quartiles
+    const q1 = data[Math.floor(data.length / 4)];
+    const q3 = data[Math.floor(3 * data.length / 4)];
+    const iqr = q3 - q1;
+
+    // Calculate the lower and upper bounds
+    const lowerBound = q1 - 1.5 * iqr;
+    const upperBound = q3 + 1.5 * iqr;
+
+    // Filter out outliers
+    const filteredData = data.filter(value => value >= lowerBound && value <= upperBound);
+
+    // Return the range of the filtered data
+    return {
+        min: Math.min(...filteredData),
+        max: Math.max(...filteredData)
+    };
 }
