@@ -18,11 +18,12 @@ export interface GraphPaperProps {
     showTiles: boolean;
     showDebugLines: boolean;
     showHeatMap: boolean;
+    showGridLines: boolean;
 }
 
 export default function GraphPaper({
                                        gridSizeX, gridSizeY, gridRenderSize = 10,
-                                       showTiles, showDebugLines, showHeatMap
+                                       showTiles, showDebugLines, showHeatMap, showGridLines
                                    }: GraphPaperProps): React.JSX.Element {
     const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -53,13 +54,15 @@ export default function GraphPaper({
             drawHeatMap(ctx, width, height, gridRenderSize, pathHeat);
         }
 
-        drawGrid(ctx, width, height, gridRenderSize);
+        if(showGridLines) {
+            drawGrid(ctx, width, height, gridRenderSize);
+        }
 
         if (showDebugLines) {
             drawLines(ctx, width, height, gridRenderSize, paths);
         }
 
-    }, [canvasRef, gridSizeX, gridSizeY, gridRenderSize, tiles, paths, pathHeat, showTiles, showHeatMap, showDebugLines]);
+    }, [canvasRef, gridSizeX, gridSizeY, gridRenderSize, tiles, paths, pathHeat, showTiles, showHeatMap, showDebugLines, showGridLines]);
 
     return <canvas ref={canvasRef} width={gridSizeX * gridRenderSize} height={gridSizeY * gridRenderSize}/>;
 }

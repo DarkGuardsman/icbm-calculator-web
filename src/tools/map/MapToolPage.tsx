@@ -31,6 +31,7 @@ export default function MapToolPage() {
     const [showTiles, setShowTiles] = useState(true);
     const [showHeatMap, setShowHeatMap] = useState(true);
     const [showDebugLines, setShowDebugLines] = useState(true);
+    const [showGridLines, setShowGridLines] = useState(true);
 
     const [modifiers, setModifiers] = useState<IMapModifier[]>([]);
 
@@ -140,9 +141,15 @@ export default function MapToolPage() {
                                 <input type={"checkbox"} checked={showDebugLines}
                                        onChange={() => setShowDebugLines(!showDebugLines)}/>
                             </div>
+                            <div className={styles.mapControlEntry}>
+                                <div className={styles.mapControlLabel}>Grid:</div>
+                                <input type={"checkbox"} checked={showGridLines}
+                                       onChange={() => setShowGridLines(!showGridLines)}/>
+                            </div>
                         </div>
                         <div className={styles.map}>
                             <GraphRender
+                                showGridLines={showGridLines}
                                 showTiles={showTiles}
                                 showDebugLines={showDebugLines}
                                 showHeatMap={showHeatMap}
