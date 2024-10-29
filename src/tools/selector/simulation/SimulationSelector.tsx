@@ -8,7 +8,7 @@ import {useDispatch, useSelector} from "react-redux";
 import {applySimEntries, selectTiles} from "../../../data/map/tileMap";
 import {initEdits, SimEntryMap2D, TileMap2D} from "../../../api/Map2D";
 import {incrementSimEdit} from "../../map/MapToolPage";
-import {addSimEntry, setTileData} from "../../../funcs/TileFuncs";
+import {addSimEntry} from "../../../funcs/TileFuncs";
 
 export interface TestArgs {
     [key: string]: {

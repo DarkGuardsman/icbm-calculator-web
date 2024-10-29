@@ -4,10 +4,10 @@ import {
     TestArgValues,
     TestTypeEntry
 } from "../../tools/selector/simulation/SimulationSelector";
-import {getExplosiveResistance, TILE_AIR, TILE_VOID} from "../../common/Tiles";
+import {getExplosiveResistance, TILE_AIR} from "../../common/Tiles";
 import {initEdits, SimEntryMap2D, TileMap2D} from "../../api/Map2D";
 import {incrementSimEdit} from "../../tools/map/MapToolPage";
-import {addSimEntry, getTile, getTileId} from "../TileFuncs";
+import {addSimEntry, getTile} from "../TileFuncs";
 
 export interface TNTBlastConfig {
     size?: number;
