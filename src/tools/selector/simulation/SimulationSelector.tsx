@@ -1,28 +1,40 @@
 import styles from "./SimulationSelector.module.css";
 import Select from "react-select";
-import React, {useEffect, useMemo, useState} from "react";
+import React, {useEffect, useState} from "react";
 import {TILE_AIR, TILE_SET} from "../../../common/Tiles";
 import {TNT_SIM_ENTRY} from "../../../funcs/sims/TNTBlast";
-import NumericIncrementer from "../../../components/incrementer/NumericIncrementer";
 import {useDispatch, useSelector} from "react-redux";
 import {applySimEntries, selectTiles} from "../../../data/map/tileMap";
 import {initEdits, SimEntryMap2D, TileMap2D} from "../../../api/Map2D";
 import {incrementSimEdit} from "../../map/MapToolPage";
 import {addSimEntry} from "../../../funcs/TileFuncs";
+import ValueDefined from "../../../components/ValueDefined";
+import SimulationArgsPanel from "./args/panel/SimulationArgsPanel";
 
 export interface TestArgs {
-    [key: string]: {
-        /** Label to show users */
-        label: string;
-        /** Grouping to show users */
-        section?: string;
-        /** Tab to show users */
-        tab?: string;
-        /** Data type */
-        type: 'int' | 'float' | 'bool';
-        /** Default value */
-        default: any;
-    }
+    tabs: TestArgTab[];
+    data: TestArg[];
+}
+
+export interface TestArgTab {
+    label: string;
+    sections: TestArgSection[]
+}
+
+export interface TestArgSection {
+    label: string;
+    args: string[];
+}
+
+export interface TestArg {
+    /** Unique key */
+    key: string;
+    /** Label to show users */
+    label: string;
+    /** Data type */
+    type: 'int' | 'float' | 'bool';
+    /** Default value */
+    default: any;
 }
 
 export interface TestArgValues {
@@ -32,7 +44,7 @@ export interface TestArgValues {
 export interface TestTypeEntry {
     id: string;
     description: string;
-    args: TestArgs;
+    args?: TestArgs;
     runner: (props: SimulationSelectorProps, tileMapGrid: TileMap2D, applyEdits: (edits: SimEntryMap2D) => void, args: TestArgValues) => void;
 }
 
@@ -41,7 +53,7 @@ const testOptions: TestTypeEntry[] = [
     {
         id: "random:fill",
         description: "Fills entire map, mostly exists for testing the runtime",
-        args: {},
+        args: undefined,
         runner: (props: SimulationSelectorProps, _: TileMap2D, applyEdits: (edits: SimEntryMap2D) => void) => {
             const edits: SimEntryMap2D = initEdits();
             const sourceId = `random:fill-${Date.now()}`;
@@ -94,13 +106,13 @@ export default function SimulationSelector(props: SimulationSelectorProps) {
     const dispatch = useDispatch();
 
     useEffect(() => {
-        const args: TestArgValues = {};
-        if (testToRun?.args) {
-            Object.keys(testToRun.args).forEach((key) => {
-                args[key] = testToRun.args[key]?.default;
+        const testData: TestArgValues = {};
+        if (testToRun?.args?.data) {
+            testToRun.args.data.forEach((arg) => {
+                testData[arg.key] = testData[arg.key]?.default;
             })
         }
-        setTestArgs(args);
+        setTestArgs(testData);
     }, [testToRun]);
 
     const runSimulation = () => {
@@ -126,7 +138,7 @@ export default function SimulationSelector(props: SimulationSelectorProps) {
     };
 
     return (
-        <div>
+        <div className={styles.simulationPanel}>
             <div className={styles.testHeader}>
                 <div className={styles.testSelector}>
                     <Select
@@ -144,91 +156,20 @@ export default function SimulationSelector(props: SimulationSelectorProps) {
                     <button onClick={runSimulation} disabled={props.hasRun || testToRun?.id === undefined}>RUN</button>
                 </div>
             </div>
-            <div className={styles.testArgList}>
-                <SimulationArgsSection
-                    {...props}
-                    testToRun={testToRun}
-                    testArgs={testArgs}
-                    setTestArg={setTestArg}
-                />
+            <div className={styles.argPanel}>
+                <ValueDefined value={testToRun.args}>
+                    <SimulationArgsPanel
+                        testToRun={testToRun}
+                        testArgs={testArgs}
+                        setTestArg={setTestArg}
+                    />
+                </ValueDefined>
             </div>
         </div>
     )
 }
 
-interface SimulationArgsSectionProps extends SimulationSelectorProps {
-    testToRun: TestTypeEntry;
-    testArgs: TestArgValues
-    setTestArg: (key: string, value: any) => void
-}
 
-function SimulationArgsSection(props: SimulationArgsSectionProps,): React.JSX.Element {
-    const {testToRun, testArgs, setTestArg} = props;
-    const args = useMemo(() => {
-        const keys = Object.keys(testToRun.args);
-        return keys.map((key) => {
-            return {
-                ...testToRun.args[key],
-                key
-            }
-        })
-    }, [testToRun]);
 
-    if (args.length === 0) {
-        return <div>"No customization options"</div>
-    }
-    return (
-        <React.Fragment>
-            {
-                args.map(arg => {
-                    if (arg.type === 'int') {
-                        const value = testArgs[arg.key] as number;
-                        return (
-                            <div className={styles.testArg} key={`test-arg-int-${arg.key}`}>
-                                <div>{arg.label}</div>
-                                <div>
-                                    <NumericIncrementer
-                                        whole={true}
-                                        value={value}
-                                        setValue={(v) => setTestArg(arg.key, v)}
-                                        increments={[1, 5]} //TODO allow customizing per arg
-                                    />
-                                </div>
-                            </div>
-                        )
-                    } else if (arg.type === 'float') {
-                        const value = testArgs[arg.key] as number;
-                        return (
-                            <div className={styles.testArg} key={`test-arg-float-${arg.key}`}>
-                                <div>{arg.label}</div>
-                                <div>
-                                    <NumericIncrementer
-                                        whole={false}
-                                        value={value}
-                                        setValue={(v) => setTestArg(arg.key, v)}
-                                        increments={[0.1, 1]} //TODO allow customizing per arg
-                                    />
-                                </div>
-                            </div>
-                        )
-                    } else if (arg.type === 'bool') {
-                        const value = testArgs[arg.key] as boolean;
-                        return (
-                            <div className={styles.testArg} key={`test-arg-bool-${arg.key}`}>
-                                <div>{arg.label}</div>
-                                <div>
-                                    <input
-                                        type="checkbox"
-                                        checked={value ?? false}
-                                        onChange={(event) => setTestArg(arg.key, !value)}
-                                    />
-                                </div>
-                            </div>
-                        )
-                    }
-                    return <div>---{arg.key}---</div>
-                })
-            }
-        </React.Fragment>
-    )
-}
+
+

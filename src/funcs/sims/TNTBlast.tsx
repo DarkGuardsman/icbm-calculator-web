@@ -84,7 +84,7 @@ export function tntBlast(cx: number, cz: number,
 
                     let cost = 0;
 
-                    if(tile !== TILE_AIR) {
+                    if (tile !== TILE_AIR) {
                         // min energy is likely to offset zero hardness blocks like tall grass
                         // scaleEnergyCost is likely the same value as stepSize. Both are 0.3~ in the code.
                         //              Given we step 0.3 we hit the same both per ray on average 3 times
@@ -143,61 +143,135 @@ export const TNT_SIM_ENTRY: TestTypeEntry = {
     id: "minecraft:tnt@1.12.2",
     description: "Vanilla TNT explosive blast",
     args: {
-        x: {
-            label: "X",
-            type: "float",
-            default: 7.5
-        },
-        y: {
-            label: "Y",
-            type: "float",
-            default: 7.5
-        },
-        raysX: {
-            label: "Rays X",
-            type: "float",
-            default: 16
-        },
-        raysY: {
-            label: "Rays Y",
-            type: "float",
-            default: 16
-        },
-        size: {
-            label: "Size",
-            type: "float",
-            default: 4
-        },
-        normalize: {
-            label: "Normalize",
-            type: "bool",
-            default: true
-        },
-        randomRayEnergy: {
-            label: "Random Ray Energy",
-            type: "bool",
-            default: true
-        },
-        stepSize: {
-            label: "Step Size",
-            type: "float",
-            default: 0.3
-        },
-        stepEnergy: {
-            label: "Step Energy",
-            type: "float",
-            default: 0.225
-        },
-        minEnergyCost: {
-            label: "Min Energy Cost",
-            type: "float",
-            default: 0.3
-        },
-        scaleEnergyCost: {
-            label: "Scale Energy Cost",
-            type: "float",
-            default: 0.3
-        }
+        tabs: [
+            {
+                label: "Vanilla",
+                sections: [
+                    {
+                        label: "Position",
+                        args: ['x', 'y']
+                    },
+                    {
+                        label: "",
+                        args: ['size']
+                    }
+                ]
+            },
+            {
+                label: "Ray Tracing",
+                sections: [
+                    {
+                        label: "Sections",
+                        args: ['raysX', 'raysY']
+                    },
+                    {
+                        label: "",
+                        args: ['stepSize', 'normalize']
+                    }
+                ]
+            },
+            {
+                label: "Energy",
+                sections: [
+                    {
+                        label: "Ray Cost",
+                        args: ["randomRayEnergy", "stepEnergy"]
+                    },
+                    {
+                        label: "Block Cost",
+                        args: ["minEnergyCost", "scaleEnergyCost"]
+                    }
+                ]
+            }
+        ],
+        data: [
+            {
+                key: 'x',
+                label: "X",
+                type: "float",
+                default: 7.5
+            },
+            {
+                key: 'y',
+                label: "Y",
+                type: "float",
+                default: 7.5
+            },
+            {
+                key: 'raysX',
+                label: "Rays X",
+                type: "float",
+                default: 16
+            },
+
+            {
+                key: "raysY",
+                label:
+                    "Rays Y",
+                type:
+                    "float",
+                default:
+                    16
+            }
+            ,
+            {
+                key: "size",
+                label:
+                    "Size",
+                type:
+                    "float",
+                default:
+                    4
+            },
+            {
+                key: "normalize",
+                label: "Normalize",
+                type:
+                    "bool",
+                default:
+                    true
+            },
+            {
+                key: "randomRayEnergy",
+                label: "Random Ray Energy",
+                type:
+                    "bool",
+                default:
+                    true
+            },
+            {
+                key: "stepSize",
+                label: "Step Size",
+                type:
+                    "float",
+                default:
+                    0.3
+            },
+            {
+                key: "stepEnergy",
+                label: "Step Energy",
+                type:
+                    "float",
+                default:
+                    0.225
+            },
+            {
+                key: "minEnergyCost",
+                label: "Min Energy Cost",
+                type:
+                    "float",
+                default:
+                    0.3
+            },
+            {
+                key: "scaleEnergyCost",
+                label: "Scale Energy Cost",
+                type:
+                    "float",
+                default:
+                    0.3
+            }
+        ]
     },
     runner: (_: SimulationSelectorProps, tileMapGrid: TileMap2D, applyEdits: (edits: SimEntryMap2D) => void, args: TestArgValues) => {
         const x = args['x'] as number;

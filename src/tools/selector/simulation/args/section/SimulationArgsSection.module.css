@@ -1,0 +1,14 @@
+.section {
+    display: flex;
+    flex-direction: column;
+    padding: 3px;
+    border: 1px solid white;
+}
+
+.args {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 5px;
+    padding: 2px;
+}

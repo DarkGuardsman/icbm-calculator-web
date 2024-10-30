@@ -1,0 +1,9 @@
+.tab {
+    overflow: auto;
+
+    padding: 5px;
+
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+}
