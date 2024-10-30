@@ -34,7 +34,10 @@ export default function SimulationArgsPanel(props: SimulationArgsSectionProps): 
         <div className={styles.panel}>
             <div className={styles.tabs}>
                 {testToRun.args.tabs.map((tab, i) =>
-                    <div className={styles.tabEntry + (i === currentTab ? " " + styles.tabCurrent : "")}>
+                    <div
+                        key={`sim-arg-tab-${i}`}
+                        className={styles.tabEntry + (i === currentTab ? " " + styles.tabCurrent : "")}
+                    >
                         <button
                             className={styles.tabButton}
                             onClick={() => setCurrentTab(i)}

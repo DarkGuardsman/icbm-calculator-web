@@ -13,8 +13,9 @@ export default function SimulationArgTab({tab, entries, values, setValue}: Simul
     return (
         <div className={styles.tab}>
             {
-                tab.sections.map(section =>
+                tab.sections.map((section, i) =>
                     <SimulationArgsSection
+                        key={`sim-arg-section-${i}`}
                         section={section}
                         entries={entries}
                         values={values}
