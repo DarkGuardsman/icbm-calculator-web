@@ -18,7 +18,7 @@ export default function SimulationArgsSection({section, entries, values, setValu
 
     return (
         <div className={styles.section}>
-            <div>{section.label}</div>
+            <div className={styles.label}>{section.label}</div>
             <div className={styles.args}>
             {
                 argsToRender.map(arg => {

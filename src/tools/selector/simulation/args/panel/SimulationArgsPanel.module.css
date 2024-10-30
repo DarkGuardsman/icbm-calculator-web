@@ -10,22 +10,27 @@
 .tabs {
     display: flex;
     flex-direction: row;
-    gap: 10px;
     padding-left: 10px;
+
+    border: 1px solid black;
 }
 
 .tabEntry {
-    background-color: lightgray;
+    height: 30px;
+    line-height: 30px;
+
     width: 150px;
-    border: 1px black solid;
+    border-right: 1px black solid;
     border-bottom: 0;
 }
 
 .tabCurrent {
-    background-color: gray;
+    background-color: #4d4e51;
 }
 
 .tabButton {
+    color: white;
+
     width: 100%;
     border: none;
     background-color: inherit;
@@ -33,5 +38,5 @@
 
 .contents {
     flex: 1;
-    background-color: gray;
+
 }

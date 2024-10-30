@@ -1,4 +1,4 @@
-import styles from "../../simulation/SimulationSelector.module.css";
+import styles from "../SimArg.module.css";
 import NumericIncrementer from "../../../../components/incrementer/NumericIncrementer";
 import React from "react";
 import {TestArg} from "../../simulation/SimulationSelector";
@@ -12,8 +12,8 @@ export interface SimArgIntProps {
 export default function SimArgInt({argData, argValue, setArgValue}: SimArgIntProps) {
     const value = typeof argValue === 'number' ? argValue as number : 0;
     return (
-        <div className={styles.testArg}>
-            <div>{argData.label}</div>
+        <div className={styles.box}>
+            <div className={styles.label}>{argData.label}</div>
             <div>
                 <NumericIncrementer
                     whole={true}

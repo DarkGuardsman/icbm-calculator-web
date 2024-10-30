@@ -136,7 +136,6 @@ export function tntBlast(cx: number, cz: number,
 
     //Done
     applyEdits(edits);
-    console.log('TNT', edits);
 }
 
 export const TNT_SIM_ENTRY: TestTypeEntry = {
@@ -152,7 +151,7 @@ export const TNT_SIM_ENTRY: TestTypeEntry = {
                         args: ['x', 'y']
                     },
                     {
-                        label: "",
+                        label: "Scale",
                         args: ['size']
                     }
                 ]
@@ -165,7 +164,7 @@ export const TNT_SIM_ENTRY: TestTypeEntry = {
                         args: ['raysX', 'raysY']
                     },
                     {
-                        label: "",
+                        label: "Ray",
                         args: ['stepSize', 'normalize']
                     }
                 ]

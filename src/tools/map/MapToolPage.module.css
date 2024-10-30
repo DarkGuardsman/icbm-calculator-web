@@ -43,6 +43,7 @@
     font-size: large;
     border-right: 2px black solid;
     padding-right: 10px;
+    color: white;
 }
 
 .mapControlEntry {
@@ -53,6 +54,7 @@
 
 .mapControlLabel {
     font-weight: bold;
+    color: white;
 }
 
 .map {

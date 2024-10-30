@@ -28,7 +28,7 @@ export default function SimulationArgsPanel(props: SimulationArgsSectionProps): 
     }, [testToRun]);
 
     if (!isDefined(testToRun.args) || testToRun.args.data.length === 0 || testToRun.args.tabs.length === 0) {
-        return <div>"No customization options"</div>
+        return <div>No customization options</div>
     }
     return (
         <div className={styles.panel}>

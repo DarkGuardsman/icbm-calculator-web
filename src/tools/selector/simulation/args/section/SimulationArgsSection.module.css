@@ -2,7 +2,6 @@
     display: flex;
     flex-direction: column;
     padding: 3px;
-    border: 1px solid white;
 }
 
 .args {
@@ -11,4 +10,8 @@
     flex-wrap: wrap;
     gap: 5px;
     padding: 2px;
+}
+
+.label {
+    color: white;
 }
