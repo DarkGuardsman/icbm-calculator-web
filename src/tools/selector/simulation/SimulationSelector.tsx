@@ -140,7 +140,9 @@ export default function SimulationSelector(props: SimulationSelectorProps) {
     return (
         <div className={styles.simulationPanel}>
             <div className={styles.testHeader}>
+                <div className={styles.testSelectLabel}>Test:</div>
                 <div className={styles.testSelector}>
+
                     <Select
                         options={testOptions}
                         value={testToRun}

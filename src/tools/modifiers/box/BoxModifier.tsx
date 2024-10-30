@@ -67,7 +67,7 @@ export default function BoxModifier(props: BoxModifierProps): React.JSX.Element 
             title={"Generate: Box"}
         >
             <div>
-                <div>Position X</div>
+                <div className={styles.label}>Position X</div>
                 <NumericIncrementer
                     value={modifier.args.x}
                     setValue={(v) => setValue({...modifier.args, x: v})}
@@ -75,7 +75,7 @@ export default function BoxModifier(props: BoxModifierProps): React.JSX.Element 
                 />
             </div>
             <div>
-                <div>Position Y</div>
+                <div className={styles.label}>Position Y</div>
                 <NumericIncrementer
                     value={modifier.args.y}
                     setValue={(v) => setValue({...modifier.args, y: v})}
@@ -83,7 +83,7 @@ export default function BoxModifier(props: BoxModifierProps): React.JSX.Element 
                 />
             </div>
             <div>
-                <div>Size X</div>
+                <div className={styles.label}>Size X</div>
                 <NumericIncrementer
                     value={modifier.args.width}
                     setValue={(v) => setValue({...modifier.args, width: v})}
@@ -91,7 +91,7 @@ export default function BoxModifier(props: BoxModifierProps): React.JSX.Element 
                 />
             </div>
             <div>
-                <div>Size Y</div>
+                <div className={styles.label}>Size Y</div>
                 <NumericIncrementer
                     value={modifier.args.height}
                     setValue={(v) => setValue({...modifier.args, height: v})}

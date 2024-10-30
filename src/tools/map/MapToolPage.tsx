@@ -112,7 +112,7 @@ export default function MapToolPage() {
     };
 
     return (
-        <ToolPage title={"Map Visualizer 2D"}>
+        <ToolPage title={"Visualization Tools > Map 2D"}>
             <div className={styles.content}>
                 <div className={styles.contentTop}>
                     <div className={styles.center}>
@@ -169,7 +169,7 @@ export default function MapToolPage() {
                             <div className={styles.toolSection}>
                                 <div className={styles.toolTitle}>Map Properties</div>
                                 <div>
-                                    <div>Size X | chunk(s): {sizeX / CHUNK_SIZE}</div>
+                                    <div className={styles.label}>Size X | chunk(s): {sizeX / CHUNK_SIZE}</div>
                                     <NumericIncrementer
                                         value={sizeX}
                                         setValue={setSizeX}
@@ -177,7 +177,7 @@ export default function MapToolPage() {
                                     />
                                 </div>
                                 <div>
-                                    <div>Size Y | chunk(s): {sizeY / CHUNK_SIZE}</div>
+                                    <div className={styles.label}>Size Y | chunk(s): {sizeY / CHUNK_SIZE}</div>
                                     <NumericIncrementer
                                         value={sizeY}
                                         setValue={setSizeY}

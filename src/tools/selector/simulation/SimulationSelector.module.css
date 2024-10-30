@@ -12,6 +12,12 @@
     padding: 10px;
 }
 
+.testSelectLabel {
+    font-weight: bold;
+    color: white;
+    line-height: 40px;
+}
+
 .testSelector {
     width: 200px;
     height: 40px;

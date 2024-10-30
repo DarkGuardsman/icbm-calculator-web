@@ -10,6 +10,10 @@
     --right-width: 350px;
 }
 
+.label {
+    color: white;
+}
+
 .contentTop {
     height: calc(100% - 200px);
 
@@ -101,11 +105,12 @@
 }
 
 .toolSection {
-    border: solid 1px #282c34;
+    border: solid 1px black;
     border-radius: 7px;
     background-color: rgb(43, 40, 40);
 }
 
 .toolTitle {
+    color: white;
     background-color: rgb(49, 49, 49);
 }

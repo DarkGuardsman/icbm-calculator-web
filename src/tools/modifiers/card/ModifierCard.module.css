@@ -1,73 +1,10 @@
-.content {
-    display: flex;
-    flex-direction: column;
-
-    width: 100%;
-    height: 100%;
-}
-
-.contentTop {
-    display: flex;
-    flex-direction: row;
-
-    flex-grow: 1;
-}
-
-.contentBottom {
-
-}
-
-.center {
-    flex-grow: 1;
-
-    display: flex;
-    flex-direction: column;
-}
-
-.map {
-    flex-grow: 1;
-
-    border: 1px black solid;
-    background-color: rgb(52, 52, 52);
-    padding: 15px;
-}
-
-.right {
-    min-width: 350px;
-    max-width: 350px;
-
-    display: flex;
-    flex-direction: column;
-
-    gap: 5px;
-
-    padding: 5px;
-
-    border: solid 1px #282c34;
-}
-
-.modifiers {
-    display: flex;
-    flex-direction: column;
-    padding: 0;
-
-    flex-grow: 1;
-}
-
-.addModifier {
-    display: inline-block;
-    margin: 0 0 0 auto;
-}
-
-.actions {
-}
-
 .toolSection {
-    border: solid 1px #282c34;
+    border: solid 2px black;
     border-radius: 7px;
-    background-color: rgb(43, 40, 40);
 }
 
 .toolTitle {
-    background-color: rgb(49, 49, 49);
+    color: white;
+    padding: 3px;
+    border-bottom: solid 1px black;
 }
