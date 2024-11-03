@@ -103,6 +103,7 @@ export function tntBlast(cx: number, cz: number,
                             oldTile: tile.index
                         },
                         meta: {
+                            mapAccessCount: 1,
                             source: {
                                 key: sourceId,
                                 phase: `ray-${xs}-${zs}`,
