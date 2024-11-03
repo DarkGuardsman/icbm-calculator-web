@@ -53,7 +53,7 @@ export const tileMapSlice = createSlice({
             const editMap = action.payload;
             state.tiles = mergeEdits<number>(state.tiles, editMap, (edits) => getLastValue(edits, (edit) => edit?.edit?.newTile));
             state.paths = collectPaths(state.paths, editMap);
-            state.pathHeat = mergeEdits<number>(state.tiles, editMap, (edits, prev) => (prev ? prev : 0) + edits.filter(e => isDefined(e.meta.path)).length)
+            state.pathHeat = mergeEdits<number>(state.pathHeat, editMap, (edits, prev) => (prev ?? 0) + edits.filter(e => isDefined(e.meta.path)).length)
         },
         clearTiles: (state) => {
             state.tiles = {
@@ -68,6 +68,17 @@ export const tileMapSlice = createSlice({
                 }
             };
             state.paths = [];
+            state.pathHeat = {
+                data: {},
+                start: {
+                    x: 0,
+                    y: 0
+                },
+                end: {
+                    x: 0,
+                    y: 0
+                }
+            }
         }
     }
 });
