@@ -1,4 +1,4 @@
-import {isDefined, valueOr} from "../Helpers";
+import {valueOr} from "../Helpers";
 import {
     SimulationSelectorProps,
     TestArgValues,
@@ -8,7 +8,6 @@ import {getExplosiveResistance, TILE_AIR, TILE_VOID, TileData} from "../../commo
 import {initEdits, SimEntryMap2D, TileMap2D} from "../../api/Map2D";
 import {incrementSimEdit} from "../../tools/map/MapToolPage";
 import {addSimEntry, getTile} from "../TileFuncs";
-import tileMap from "../../data/map/tileMap";
 
 
 export function largeBlast(tileMapGrid: TileMap2D,
@@ -18,13 +17,12 @@ export function largeBlast(tileMapGrid: TileMap2D,
 
     const centerX = valueOr<number>(args['x'] as number, 10);
     const centerZ = valueOr<number>(args['y'] as number, 10);
-    const size = valueOr<number>(args['size'] as number, 10); //nuke is 50
+    const size = valueOr<number>(args['size'] as number, 50); //nuke is 50
     const energy = valueOr<number>(args['energy'] as number, 80); //nuke is 80
+    const lineDensityScale = valueOr<number>(args['rayDensity'] as number, 2);
+    const stepSize = valueOr<number>(args['stepSize'] as number, 0.5);
+    const stepCost = valueOr<number>(args['stepCost'] as number, 0.3 * 0.75 * 5); //TODO figure out magic numbers, its like this in the mod as well
 
-    //TODO add to customizations
-    const stepSize = 0.5;
-    const stepCost = 0.3 * 0.75 * 5; //TODO figure out magic numbers, its like this in the mod as well
-    const lineDensityScale = 2;
 
     ///========================================================
     // Last updated: November 3rd, 2024 using 1.12.2-6.4.1 code githash: d9848cf98805d7ffe945d08ebef6718d0f1a08d0
@@ -55,7 +53,7 @@ export function largeBlast(tileMapGrid: TileMap2D,
         let stepIndexThisRay = 0;
 
         // Randomize power per ray
-        let powerForRay = energy - (energy * Math.random() / 2);
+        let powerForRay = energy - (energy * Math.random() / 2); //TODO add customization
 
         while ((dx * dx + dz * dz) > 0 && distance <= size && powerForRay > 0) {
             const nx = x - centerX;
@@ -143,15 +141,28 @@ export const NUKE_SIM_ENTRY: TestTypeEntry = {
     args: {
         tabs: [
             {
-                label: "Basic",
+                label: "ICBM",
                 sections: [
                     {
                         label: "Position",
                         args: ['x', 'y']
                     },
                     {
-                        label: "Scale",
+                        label: "Configuration",
                         args: ['size', 'energy']
+                    }
+                ]
+            },
+            {
+                label: "Extras",
+                sections: [
+                    {
+                        label: "Raytracing",
+                        args: ['rayDensity', 'stepSize']
+                    },
+                    {
+                        label: "Energy",
+                        args: ["stepCost"]
                     }
                 ]
             }
@@ -180,6 +191,24 @@ export const NUKE_SIM_ENTRY: TestTypeEntry = {
                 label: "Energy",
                 type: "float",
                 default: 80
+            },
+            {
+                key: "rayDensity",
+                label: "Ray Density",
+                type: "float",
+                default: 2
+            },
+            {
+                key: "stepSize",
+                label: "Step Size",
+                type: "float",
+                default: 0.5
+            },
+            {
+                key: "stepCost",
+                label: "Step Cost",
+                type: "float",
+                default: 0.3 * 0.75 * 5
             }
         ]
     },
