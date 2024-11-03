@@ -126,7 +126,8 @@ function drawLines(ctx: CanvasRenderingContext2D, width: number, height: number,
 
         let renderScale = gridRenderSize;
         if (isDefined(line.meta.energyLeft) && isDefined(largestEnergy)) {
-            renderScale -= gridRenderSize * (1 - line.meta.energyLeft / largestEnergy) * 0.8
+            const energyScale = 1 - Math.max(0, line.meta.energyLeft) / largestEnergy;
+            renderScale -= gridRenderSize * energyScale * 0.8;
         }
 
         const arrowSize = renderScale * dotSize * 3;
