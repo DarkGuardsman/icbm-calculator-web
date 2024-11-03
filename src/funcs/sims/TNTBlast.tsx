@@ -141,11 +141,17 @@ export function tntBlast(cx: number, cz: number,
 
 export const TNT_SIM_ENTRY: TestTypeEntry = {
     id: "minecraft:tnt@1.12.2",
-    description: "Vanilla TNT explosive blast",
+    description: "Minecraft TNT configuration using base game's explosion alg",
+    expandedInfo:
+        "Minecraft's explosion algorithm in simple terms is a depth first step raytracer. Its broken down into 16 fixed slices " +
+        "per axis with  a step increment (0.3m). Energy is introduced to limit the raytrace size with a constant " +
+        "consumption per step. As well a cost per block destroyed based on explosion resistance. Normally the base " +
+        "game only exposes position and size as adjustable parameters. For fun we have exposed more of the internals. " +
+         "Such as customizing the slices, step size, energy, consumption rates, and cost scale.",
     args: {
         tabs: [
             {
-                label: "Vanilla",
+                label: "Base Game",
                 sections: [
                     {
                         label: "Position",
@@ -158,10 +164,10 @@ export const TNT_SIM_ENTRY: TestTypeEntry = {
                 ]
             },
             {
-                label: "Ray Tracing",
+                label: "(Extras) Ray Tracing",
                 sections: [
                     {
-                        label: "Sections",
+                        label: "Slices",
                         args: ['raysX', 'raysY']
                     },
                     {
@@ -171,7 +177,7 @@ export const TNT_SIM_ENTRY: TestTypeEntry = {
                 ]
             },
             {
-                label: "Energy",
+                label: "(Extras) Energy",
                 sections: [
                     {
                         label: "Ray Cost",

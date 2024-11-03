@@ -10,6 +10,7 @@ import {incrementSimEdit} from "../../map/MapToolPage";
 import {addSimEntry} from "../../../funcs/TileFuncs";
 import ValueDefined from "../../../components/ValueDefined";
 import SimulationArgsPanel from "./args/panel/SimulationArgsPanel";
+import {NUKE_SIM_ENTRY} from "../../../funcs/sims/LargeBlast";
 
 export interface TestArgs {
     tabs: TestArgTab[];
@@ -43,13 +44,17 @@ export interface TestArgValues {
 
 export interface TestTypeEntry {
     id: string;
+    /** Short description of the test */
     description: string;
+    /** Expanded information about the test, often shared between several tests */
+    expandedInfo?: string;
     args?: TestArgs;
     runner: (props: SimulationSelectorProps, tileMapGrid: TileMap2D, applyEdits: (edits: SimEntryMap2D) => void, args: TestArgValues) => void;
 }
 
 const testOptions: TestTypeEntry[] = [
     TNT_SIM_ENTRY,
+    NUKE_SIM_ENTRY,
     {
         id: "random:fill",
         description: "Fills entire map, mostly exists for testing the runtime",
