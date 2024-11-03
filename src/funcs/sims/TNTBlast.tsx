@@ -120,7 +120,7 @@ export function tntBlast(cx: number, cz: number,
                                 },
                                 meta: {
                                     energyLeft: radialEnergy - cost,
-                                    energyCost: cost
+                                    energyCost: cost + stepEnergy
                                 }
                             }
                         }
