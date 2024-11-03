@@ -109,7 +109,7 @@ export default function SimulationSelector(props: SimulationSelectorProps) {
         const testData: TestArgValues = {};
         if (testToRun?.args?.data) {
             testToRun.args.data.forEach((arg) => {
-                testData[arg.key] = testData[arg.key]?.default;
+                testData[arg.key] = arg.default;
             })
         }
         setTestArgs(testData);
