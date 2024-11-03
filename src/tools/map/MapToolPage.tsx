@@ -48,7 +48,9 @@ export default function MapToolPage() {
         fillTiles(edits, 0, 0, sizeX, sizeY, (x, y) => ({
             x, y,
             index: incrementSimEdit(),
-            newTile: TILE_AIR.index,
+            edit: {
+                newTile: TILE_AIR.index,
+            },
             meta: {
                 source: {
                     key: "init",
@@ -68,7 +70,9 @@ export default function MapToolPage() {
                 fillTiles(edits, args.x, args.y, args.width, args.height, (x, y) => ({
                    x, y,
                     index: incrementSimEdit(),
-                    newTile: getRandomTile(possibleTiles),
+                    edit: {
+                        newTile: getRandomTile(possibleTiles),
+                    },
                     meta: {
                        source: {
                            key : `box-${mIndex}`,

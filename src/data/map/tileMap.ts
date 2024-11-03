@@ -51,11 +51,9 @@ export const tileMapSlice = createSlice({
         applySimEntry: (state: TileMapState, action: PayloadAction<MapSimEntry2D>) => applyEdit(state, action.payload),
         applySimEntries: (state: TileMapState, action: PayloadAction<SimEntryMap2D>) => {
             const editMap = action.payload;
-            state.tiles = mergeEdits<number>(state.tiles, editMap, (edits) => [...edits].reverse().find(e => isDefined(e?.edit?.newTile))?.edit?.newTile); //TODO write custom function to walk backwards
+            state.tiles = mergeEdits<number>(state.tiles, editMap, (edits) => getLastValue(edits, (edit) => edit?.edit?.newTile));
             state.paths = collectPaths(state.paths, editMap);
             state.pathHeat = mergeEdits<number>(state.tiles, editMap, (edits, prev) => (prev ? prev : 0) + edits.filter(e => isDefined(e.meta.path)).length)
-
-            console.log(editMap, state.tiles, state.paths);
         },
         clearTiles: (state) => {
             state.tiles = {
@@ -73,6 +71,16 @@ export const tileMapSlice = createSlice({
         }
     }
 });
+
+function getLastValue<T>(edits: MapSimEntry2D[], accessor: (edit: MapSimEntry2D) => T): T | undefined {
+    for(let i = edits.length - 1; i >= 0; i--) {
+        const value = accessor(edits[i]);
+        if(isDefined(value)) {
+            return value;
+        }
+    }
+    return undefined;
+}
 
 function collectPaths(existingPaths: PathData2D[], editMap: SimEntryMap2D) {
 
@@ -132,13 +140,11 @@ function mergeEdits<T>(oldMap: Map2D<T>, editMap: SimEntryMap2D, dataAccessor: (
 
             Object.keys(edits[y]).forEach(xKey => {
                 const x = xKey as unknown as number;
-                if (edits[y][x]?.length > 0) {
-                    const edits = getTileData(x, y, editMap);
-                    if (isDefined(edits)) {
-                        const valueToSet = dataAccessor(edits, tiles[y][x]);
-                        if(isDefined(valueToSet)) {
-                            tiles[y][x] = valueToSet;
-                        }
+                const tileSimEntries = getTileData(x, y, editMap);
+                if (isDefined(tileSimEntries) && tileSimEntries.length > 0) {
+                    const valueToSet = dataAccessor(tileSimEntries, tiles[y][x]);
+                    if(isDefined(valueToSet)) {
+                        tiles[y][x] = valueToSet;
                     }
                 }
             });
