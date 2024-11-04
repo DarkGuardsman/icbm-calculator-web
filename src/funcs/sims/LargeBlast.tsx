@@ -1,6 +1,6 @@
 import {valueOr} from "../Helpers";
 import {
-    SimulationSelectorProps, TestArg, TestArgs,
+    SimulationSelectorProps, TestArg,
     TestArgValues,
     TestTypeEntry
 } from "../../tools/selector/simulation/SimulationSelector";
