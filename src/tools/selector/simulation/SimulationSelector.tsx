@@ -10,7 +10,7 @@ import {incrementSimEdit} from "../../map/MapToolPage";
 import {addSimEntry} from "../../../funcs/TileFuncs";
 import ValueDefined from "../../../components/ValueDefined";
 import SimulationArgsPanel from "./args/panel/SimulationArgsPanel";
-import {NUKE_SIM_ENTRY} from "../../../funcs/sims/LargeBlast";
+import {NUKE_SIM_ENTRY, SONIC_ENTRY} from "../../../funcs/sims/LargeBlast";
 
 export interface TestArgs {
     tabs: TestArgTab[];
@@ -54,6 +54,7 @@ export interface TestTypeEntry {
 
 const testOptions: TestTypeEntry[] = [
     TNT_SIM_ENTRY,
+    SONIC_ENTRY,
     NUKE_SIM_ENTRY,
     {
         id: "random:fill",

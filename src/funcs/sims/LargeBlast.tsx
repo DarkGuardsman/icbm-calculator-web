@@ -1,6 +1,6 @@
 import {valueOr} from "../Helpers";
 import {
-    SimulationSelectorProps,
+    SimulationSelectorProps, TestArg, TestArgs,
     TestArgValues,
     TestTypeEntry
 } from "../../tools/selector/simulation/SimulationSelector";
@@ -128,15 +128,63 @@ export function largeBlast(tileMapGrid: TileMap2D,
     applyEdits(edits);
 }
 
+const BLAST_LARGE_DESCRIPTION = "Like Minecraft TNT, ICBM's 'Blast Large' algorithm works via depth first incremental step raytracer." +
+    "Unlike Minecraft's fixed values, ICBM uses yaw and pitch radian slices. Scaling " +
+    "with size to ensure a more accurate results. While also deduplicating repeat block checks to " +
+    "reduce impact on the game world. Other aspects are still similar such as a constant energy per step and scaled energy " +
+    "cost per block. Though over all this algorithm runs faster and is more accurate at larger sizes. Yet much like " +
+    "Minecraft's version it hasn't aged well and is considered a 'legacy' algorithm.";
+
+const BLAST_LARGE_ARGS: TestArg[] = [
+    {
+        key: 'x',
+        label: "X",
+        type: "float",
+        default: 7.5
+    },
+    {
+        key: 'y',
+        label: "Y",
+        type: "float",
+        default: 7.5
+    },
+    {
+        key: "size",
+        label: "Size",
+        type: "float",
+        default: 50
+    },
+    {
+        key: "energy",
+        label: "Energy",
+        type: "float",
+        default: 80
+    },
+    {
+        key: "rayDensity",
+        label: "Ray Density",
+        type: "float",
+        default: 2
+    },
+    {
+        key: "stepSize",
+        label: "Step Size",
+        type: "float",
+        default: 0.5
+    },
+    {
+        key: "stepCost",
+        label: "Step Cost",
+        type: "float",
+        default: 0.3 * 0.75 * 5
+    }
+]
+
 export const NUKE_SIM_ENTRY: TestTypeEntry = {
+    runner: (_: SimulationSelectorProps, tileMapGrid: TileMap2D, applyEdits: (edits: SimEntryMap2D) => void, args: TestArgValues) => largeBlast(tileMapGrid, applyEdits, args),
     id: "icbmclassic:blast.nuclear@1.12.2-6.4.1",
     description: "Nuclear configuration using 'Blast Large' algorithm run on a separate thread from the game world",
-    expandedInfo: "Like Minecraft TNT, ICBM's 'Blast Large' algorithm works via depth first incremental step raytracer." +
-        "Unlike Minecraft's fixed values, ICBM uses yaw and pitch radian slices. Scaling " +
-        "with size to ensure a more accurate results. While also deduplicating repeat block checks to " +
-        "reduce impact on the game world. Other aspects are still similar such as a constant energy per step and scaled energy " +
-        "cost per block. Though over all this algorithm runs faster and is more accurate at larger sizes. Yet much like " +
-        "Minecraft's version it hasn't aged well and is considered a 'legacy' algorithm.",
+    expandedInfo: BLAST_LARGE_DESCRIPTION,
     // TODO provide display info on predicted raytraces based on inputs
     args: {
         tabs: [
@@ -168,18 +216,7 @@ export const NUKE_SIM_ENTRY: TestTypeEntry = {
             }
         ],
         data: [
-            {
-                key: 'x',
-                label: "X",
-                type: "float",
-                default: 7.5
-            },
-            {
-                key: 'y',
-                label: "Y",
-                type: "float",
-                default: 7.5
-            },
+            ...BLAST_LARGE_ARGS,
             {
                 key: "size",
                 label: "Size",
@@ -191,26 +228,60 @@ export const NUKE_SIM_ENTRY: TestTypeEntry = {
                 label: "Energy",
                 type: "float",
                 default: 80
-            },
-            {
-                key: "rayDensity",
-                label: "Ray Density",
-                type: "float",
-                default: 2
-            },
-            {
-                key: "stepSize",
-                label: "Step Size",
-                type: "float",
-                default: 0.5
-            },
-            {
-                key: "stepCost",
-                label: "Step Cost",
-                type: "float",
-                default: 0.3 * 0.75 * 5
             }
         ]
-    },
-    runner: (_: SimulationSelectorProps, tileMapGrid: TileMap2D, applyEdits: (edits: SimEntryMap2D) => void, args: TestArgValues) => largeBlast(tileMapGrid, applyEdits, args)
+    }
+}
+
+export const SONIC_ENTRY: TestTypeEntry = {
+    runner: (_: SimulationSelectorProps, tileMapGrid: TileMap2D, applyEdits: (edits: SimEntryMap2D) => void, args: TestArgValues) => largeBlast(tileMapGrid, applyEdits, args),
+    id: "icbmclassic:blast.sonic@1.12.2-6.4.1",
+    description: "Sonic configuration using 'Blast Large' algorithm run on a separate thread from the game world",
+    expandedInfo: BLAST_LARGE_DESCRIPTION,
+    // TODO provide display info on predicted raytraces based on inputs
+    args: {
+        tabs: [
+            {
+                label: "ICBM",
+                sections: [
+                    {
+                        label: "Position",
+                        args: ['x', 'y']
+                    },
+                    {
+                        label: "Configuration",
+                        args: ['size', 'energy']
+                    }
+                ]
+            },
+            {
+                label: "Extras",
+                sections: [
+                    {
+                        label: "Raytracing",
+                        args: ['rayDensity', 'stepSize']
+                    },
+                    {
+                        label: "Energy",
+                        args: ["stepCost"]
+                    }
+                ]
+            }
+        ],
+        data: [
+            ...BLAST_LARGE_ARGS,
+            {
+                key: "size",
+                label: "Size",
+                type: "float",
+                default: 15
+            },
+            {
+                key: "energy",
+                label: "Energy",
+                type: "float",
+                default: 30
+            }
+        ]
+    }
 }
