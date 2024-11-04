@@ -84,6 +84,7 @@ function drawTile(ctx: CanvasRenderingContext2D, x: number, y: number, gridRende
         gridRenderSize,
         gridRenderSize
     );
+    ctx.restore();
 }
 
 function drawGrid(ctx: CanvasRenderingContext2D, width: number, height: number, gridRenderSize: number) {
@@ -177,6 +178,9 @@ function drawHeatMap(ctx: CanvasRenderingContext2D, width: number, height: numbe
 
     const heatValues = Object.values(heatMap.data).flatMap(ySet => Object.values(ySet));
     const range = getNumberRangeExcludingOutliers(getUniqueNumbers(heatValues));
+    if(range.min === range.max) {
+        return;
+    }
     for (let y = heatMap.start.y; y <= heatMap.end.y; y++) {
         for (let x = heatMap.start.x; x <= heatMap.end.x; x++) {
             const data = getTileData(x, y, heatMap);
