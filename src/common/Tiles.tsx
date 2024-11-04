@@ -4,6 +4,8 @@ export interface TileData {
     color: string;
     resistance: number;
     hardness: number;
+    isFluid: boolean;
+    isGravity: boolean;
 }
 
 
@@ -39,6 +41,12 @@ export const TILE_SET: TileData[] = [
         hardness: 0.5
     },
     {
+        key: 'minecraft:sand',
+        color: 'rgb(213,211,68)',
+        hardness: 0.5,
+        isGravity: true
+    },
+    {
         key: 'minecraft:cobble',
         color: 'rgb(80,78,76)',
         resistance: 10,
@@ -46,9 +54,21 @@ export const TILE_SET: TileData[] = [
     },
     {
         key: 'minecraft:plank',
-        color: 'rgb(213,211,68)',
+        color: 'rgb(151,131,23)',
         resistance: 5,
         hardness: 2
+    },
+    {
+        key: 'minecraft:water',
+        color: 'rgb(38,84,184)',
+        isFluid: true,
+        hardness: 100
+    },
+    {
+        key: 'minecraft:lava',
+        color: 'rgb(214,79,23)',
+        isFluid: true,
+        hardness: 100
     }
 ]
     .sort((a, b) => a.key.localeCompare(b.key))
@@ -57,6 +77,8 @@ export const TILE_SET: TileData[] = [
             ...entry,
             resistance: entry?.resistance ? entry.resistance * 3 : entry.hardness * 5,
             hardness: entry.hardness,
+            isFluid: entry.isFluid ?? false,
+            isGravity: entry.isGravity ?? false,
             index
         }
     ));
