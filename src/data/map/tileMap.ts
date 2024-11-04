@@ -51,9 +51,17 @@ export const tileMapSlice = createSlice({
         applySimEntry: (state: TileMapState, action: PayloadAction<MapSimEntry2D>) => applyEdit(state, action.payload),
         applySimEntries: (state: TileMapState, action: PayloadAction<SimEntryMap2D>) => {
             const editMap = action.payload;
-            state.tiles = mergeEdits<number>(state.tiles, editMap, (edits) => getLastValue(edits, (edit) => edit?.edit?.newTile));
+            state.tiles = mergeEdits<number>(state.tiles, editMap,
+                (edit) => isDefined(edit?.edit?.newTile),
+                (edits) => getLastValue(edits, (edit) => edit?.edit?.newTile)
+            );
+
             state.paths = collectPaths(state.paths, editMap);
-            state.pathHeat = mergeEdits<number>(state.pathHeat, editMap, (edits, prev) => (prev ?? 0) + edits.filter(e => isDefined(e.meta.path)).length)
+
+            state.pathHeat = mergeEdits<number>(state.pathHeat, editMap,
+                (edit) => isDefined(edit?.meta?.path),
+                (edits, prev) => (prev ?? 0) + edits.filter(e => isDefined(e.meta.path)).length
+            );
         },
         clearTiles: (state) => {
             state.tiles = {
@@ -129,7 +137,7 @@ function collectPaths(existingPaths: PathData2D[], editMap: SimEntryMap2D) {
     return paths;
 }
 
-function mergeEdits<T>(oldMap: Map2D<T>, editMap: SimEntryMap2D, dataAccessor: (edits: MapSimEntry2D[], prev: T) => T|undefined): Map2D<T> {
+function mergeEdits<T>(oldMap: Map2D<T>, editMap: SimEntryMap2D, validator: (edit: MapSimEntry2D) => boolean, dataAccessor: (edits: MapSimEntry2D[], prev: T) => T|undefined): Map2D<T> {
     const newMap = {
         data: {...oldMap.data},
         start: {
@@ -151,7 +159,7 @@ function mergeEdits<T>(oldMap: Map2D<T>, editMap: SimEntryMap2D, dataAccessor: (
 
             Object.keys(edits[y]).forEach(xKey => {
                 const x = xKey as unknown as number;
-                const tileSimEntries = getTileData(x, y, editMap);
+                const tileSimEntries = getTileData(x, y, editMap)?.filter((e) => validator(e));
                 if (isDefined(tileSimEntries) && tileSimEntries.length > 0) {
                     const valueToSet = dataAccessor(tileSimEntries, tiles[y][x]);
                     if(isDefined(valueToSet)) {
