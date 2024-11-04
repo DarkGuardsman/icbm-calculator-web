@@ -285,3 +285,56 @@ export const SONIC_ENTRY: TestTypeEntry = {
         ]
     }
 }
+
+export const THERMOBARIC_ENTRY: TestTypeEntry = {
+    runner: (_: SimulationSelectorProps, tileMapGrid: TileMap2D, applyEdits: (edits: SimEntryMap2D) => void, args: TestArgValues) => largeBlast(tileMapGrid, applyEdits, args),
+    id: "icbmclassic:blast.thermobaric@1.12.2-6.4.1",
+    description: "Thermobaric configuration using 'Blast Large' algorithm run on a separate thread from the game world",
+    expandedInfo: BLAST_LARGE_DESCRIPTION,
+    // TODO provide display info on predicted raytraces based on inputs
+    args: {
+        tabs: [
+            {
+                label: "ICBM",
+                sections: [
+                    {
+                        label: "Position",
+                        args: ['x', 'y']
+                    },
+                    {
+                        label: "Configuration",
+                        args: ['size', 'energy']
+                    }
+                ]
+            },
+            {
+                label: "Extras",
+                sections: [
+                    {
+                        label: "Raytracing",
+                        args: ['rayDensity', 'stepSize']
+                    },
+                    {
+                        label: "Energy",
+                        args: ["stepCost"]
+                    }
+                ]
+            }
+        ],
+        data: [
+            ...BLAST_LARGE_ARGS,
+            {
+                key: "size",
+                label: "Size",
+                type: "float",
+                default: 30
+            },
+            {
+                key: "energy",
+                label: "Energy",
+                type: "float",
+                default: 80
+            }
+        ]
+    }
+}
