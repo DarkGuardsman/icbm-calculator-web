@@ -205,7 +205,7 @@ function getHeatColor(value: number, min: number, max: number) {
 
     const hue = ratio * 1.2 / 3.60;
     const color = hslToRgb(hue, 1, .5 - (0.3 * overRatio));
-    return `rgb(${color.red}, ${color.green}, ${color.blue})`;
+    return `rgba(${color.red}, ${color.green}, ${color.blue}, 0.5)`;
 }
 
 function hslToRgb(h: number, s: number, l: number) {
