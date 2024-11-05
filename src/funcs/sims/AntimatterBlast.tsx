@@ -4,7 +4,7 @@ import {
     TestArgValues,
     TestTypeEntry
 } from "../../tools/selector/simulation/SimulationSelector";
-import {TILE_AIR, TILE_ID_TO_OBJ, TILE_VOID, TileData} from "../../common/Tiles";
+import {TILE_ID_TO_OBJ, TILE_VOID, TileData} from "../../common/Tiles";
 import {initEdits, SimEntryMap2D, TileMap2D} from "../../api/Map2D";
 import {incrementSimEdit} from "../../tools/map/MapToolPage";
 import {addSimEntry, getTile} from "../TileFuncs";
