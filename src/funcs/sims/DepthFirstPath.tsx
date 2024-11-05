@@ -18,7 +18,8 @@ interface PathStep extends Pos2D {
 
 function doPath(tileMapGrid: TileMap2D,
                 applyEdits: (edits: SimEntryMap2D) => void,
-                args: TestArgValues
+                args: TestArgValues,
+                depthFirst: boolean
 ) {
 
     const centerX = valueOr<number>(args['x'] as number, 10);
@@ -33,7 +34,7 @@ function doPath(tileMapGrid: TileMap2D,
     const stack: PathStep[] = [{x: centerX, y: centerY, step: 0}];
 
     while (stack.length > 0) {
-        const nextPos = stack.pop();
+        const nextPos = depthFirst ? stack.shift(): stack.pop();
 
         console.log(nextPos);
 
@@ -45,11 +46,11 @@ function doPath(tileMapGrid: TileMap2D,
             .map(side => addPos2D(nextPos, side))
             .filter(sidePos => !pos2DEquals(nextPos, sidePos));
 
-        console.log(nextTiles);
 
         // old school loop because tslint hates access vars inside a forEach
         for(let i = 0; i < nextTiles.length; i++) {
             const nextTile = nextTiles[i];
+
 
             //const deltaX = centerX - nextPos.x;
             //const deltaY = centerY - nextPos.y;
@@ -101,7 +102,7 @@ function doPath(tileMapGrid: TileMap2D,
 }
 
 export const DEPTH_FIRST_EXPAND: TestTypeEntry = {
-    runner: (_: SimulationSelectorProps, tileMapGrid: TileMap2D, applyEdits: (edits: SimEntryMap2D) => void, args: TestArgValues) => doPath(tileMapGrid, applyEdits, args),
+    runner: (_: SimulationSelectorProps, tileMapGrid: TileMap2D, applyEdits: (edits: SimEntryMap2D) => void, args: TestArgValues) => doPath(tileMapGrid, applyEdits, args, true),
     id: "random:expand.depth_first",
     description: "Expands pathing from tile to tile moving deep before broad",
     args: {
