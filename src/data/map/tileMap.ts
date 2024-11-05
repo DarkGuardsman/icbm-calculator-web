@@ -147,23 +147,13 @@ export const tileMapSlice = createSlice({
                 entries: editArray
             }
         },
+        selectNextEdit: (state) => {
+            if(state.edits.currentIndex < state.edits.maxIndex) {
+                updateEditIndex(state, state.edits.currentIndex + 1);
+            }
+        },
         selectEditIndex: (state, action: PayloadAction<number>) => {
-            state.edits = {
-                ...state.edits,
-                currentIndex: action.payload
-            };
-            clearEditData(state);
-
-            // Build new edit map
-            const editMap = initEdits();
-            state.edits.entries
-                .filter(e => e.index <= state.edits.currentIndex)
-                .forEach(e => {
-                    addSimEntry(editMap, e);
-                });
-
-            // Apply map
-            applyEditMap(state, editMap);
+            updateEditIndex(state, action.payload);
 
             //TODO if moving forward small amounts attempt to play next edit or undo last edit to reduce recalculation delay
         },
@@ -178,6 +168,25 @@ export const tileMapSlice = createSlice({
         }
     }
 });
+
+function updateEditIndex(state: TileMapState, index: number) {
+    state.edits = {
+        ...state.edits,
+        currentIndex: index
+    };
+    clearEditData(state);
+
+    // Build new edit map
+    const editMap = initEdits();
+    state.edits.entries
+        .filter(e => e.index <= state.edits.currentIndex)
+        .forEach(e => {
+            addSimEntry(editMap, e);
+        });
+
+    // Apply map
+    applyEditMap(state, editMap);
+}
 
 function clearEditData(state: TileMapState) {
     state.tiles = {
@@ -285,12 +294,13 @@ function applyEdit(state: TileMapState, simEntry: MapSimEntry2D) {
     }
 }
 
-export const {applySimEntry, applySimEntries, clearTiles, selectEditIndex} = tileMapSlice.actions;
+export const {applySimEntry, applySimEntries, clearTiles, selectEditIndex, selectNextEdit} = tileMapSlice.actions;
 
 export const selectTiles = (state: RootState) => state.map2D.tiles;
 export const selectPaths = (state: RootState) => state.map2D.paths;
 export const selectPathHeat = (state: RootState) => state.map2D.pathHeat;
 export const currentEditIndex = (state: RootState) => state.map2D.edits.currentIndex;
+export const maxEditIndex = (state: RootState) => state.map2D.edits.maxIndex;
 export const editBookmarks = (state: RootState) => state.map2D.edits.bookmarks;
 
 export default tileMapSlice.reducer;

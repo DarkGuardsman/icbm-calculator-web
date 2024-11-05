@@ -70,3 +70,15 @@
 .played {
     background-color: #787575;
 }
+
+.playButton {
+    width: 100px;
+    height: 20px;
+    background-color: green;
+}
+
+.stopButton {
+    background-color: darkred;
+    width: 100px;
+    height: 20px;
+}

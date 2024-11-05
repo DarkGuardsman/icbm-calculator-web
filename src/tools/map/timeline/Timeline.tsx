@@ -1,14 +1,40 @@
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import styles from './Timeline.module.css';
 import {useDispatch, useSelector} from "react-redux";
-import {currentEditIndex, editBookmarks, selectEditIndex} from "../../../data/map/tileMap";
+import {
+    currentEditIndex,
+    editBookmarks,
+    maxEditIndex,
+    selectEditIndex,
+    selectNextEdit
+} from "../../../data/map/tileMap";
 import NumericIncrementer from "../../../components/incrementer/NumericIncrementer";
 
 export function Timeline() {
     const dispatch = useDispatch();
 
     const currentIndex = useSelector(currentEditIndex);
+    const maxIndex = useSelector(maxEditIndex);
     const bookmarks = useSelector(editBookmarks);
+
+    const [autoPlayIndex, setAutoPlayIndex] = useState(-1);
+    const [playbackSpeed, setPlaybackSpeed] = useState(100);
+
+    useEffect(() => {
+        if(autoPlayIndex > 0 && playbackSpeed > 1) {
+            let current = autoPlayIndex;
+            const timer = setInterval(() => {
+                if(current++ < maxIndex) {
+
+                    dispatch(selectNextEdit())
+                }
+                else {
+                    setAutoPlayIndex(-1);
+                }
+            }, playbackSpeed);
+            return () => clearInterval(timer);
+        }
+    }, [dispatch, autoPlayIndex, playbackSpeed, maxIndex]);
 
     return (
         <div className={styles.panel}>
@@ -22,11 +48,25 @@ export function Timeline() {
                         increments={[1]}
                     />
                 </div>
+                <div className={styles.control}>
+                    <div className={styles.label}>Playback:</div>
+                    <button className={styles.playButton} onClick={() => setAutoPlayIndex(currentIndex)}>Start</button>
+                    <button className={styles.stopButton} onClick={() => setAutoPlayIndex(-1)}>Stop</button>
+
+                </div>
+                <div className={styles.control}>
+                    <div className={styles.label}>Speed (ms):</div>
+                    <NumericIncrementer
+                        value={playbackSpeed}
+                        setValue={(v) => setPlaybackSpeed(v)}
+                        increments={[1, 10]}
+                    />
+                </div>
             </div>
             <div className={styles.entries}>
                 {
                     bookmarks.map((source, si) =>
-                        <div className={styles.bookmarkSet}  key={'source-' + si}>
+                        <div className={styles.bookmarkSet} key={'source-' + si}>
                             {
                                 source.entries.map((entry, ei) =>
                                     <JumpToButton
