@@ -25,8 +25,20 @@ export interface PathData2DMeta {
      * 'dead' means the path ran out of options
      *
      * Default is assumed to be 'continue' if undefined
+     *
+     * This mostly changes the line color and end cap visual
      * */
     endType?: 'continue' | 'done' | 'collision' | 'dead'
+    /**
+     * What type of result was recorded as part of the path
+     *
+     * 'hit' means we collided with something but did nothing (ex: ran out of energy)
+     * 'action' means some change was made on the map as a result of the path (ex: tile removed)
+     * 'ignore' means the position was skipped (ex: out of range)
+     *
+     * This changes what type of node is drawn at the end position
+     */
+    nodeType? : 'hit' | 'action' | 'ignore',
     /** Energy left after processing the ray */
     energyLeft?: number;
     /** Energy cost of the ray step, usually this is the tile's energy cost with a modifier */

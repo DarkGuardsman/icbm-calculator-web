@@ -32,14 +32,18 @@ export function antimatterBlast(tileMapGrid: TileMap2D,
 
     const collectedBlocks: MapSimEntry2D[] = [];
 
-    let lastX = Number.MAX_SAFE_INTEGER;
-    let lastZ = Number.MAX_SAFE_INTEGER;
+
     for (let dx = -size; dx <= size; dx++) {
+
+        let lastZ = Math.floor(centerZ) -size;
         for (let dz = -size; dz <= size; dz++) {
             const tileX = Math.floor(centerX) + dx;
             const tileZ = Math.floor(centerZ) + dz;
 
             const tile: TileData = getTile(tileX, tileZ, tileMapGrid);
+
+            const  radiusSQ = size * size;
+            const distanceSQ = dx * dx + dz * dz;
 
             // Collect pathing as this is step 0
             addSimEntry(edits, {
@@ -51,25 +55,27 @@ export function antimatterBlast(tileMapGrid: TileMap2D,
                     mapAccessCount: 0,
                     source: {
                         key: sourceId,
-                        phase: 'pathing',
+                        phase: `pathing${dx === 0 ? "-" : (dx < 0 ? "-n" : "-p")}${Math.abs(dx)}`,
                         index: editIndex++
                     },
                     path: {
                         start: {
-                            x: (lastX === Number.MAX_SAFE_INTEGER ? tileX : lastX) + 0.5,
-                            y: (lastZ === Number.MAX_SAFE_INTEGER ? tileZ : lastZ) + 0.5
+                            x: Math.floor(centerX) + dx + 0.5,
+                            y: lastZ + 0.5
                         },
                         end: {
                             x: tileX + 0.5,
                             y: tileZ + 0.5
                         },
-                        meta: {}
+                        meta: {
+                            endType: 'continue',
+                            nodeType: distanceSQ > radiusSQ || !shouldEditPos(dx, dz, size, feathering) ? 'ignore' : 'action'
+                        }
                     }
                 }
             });
 
-            const  radiusSQ = size * size;
-            const distanceSQ = dx * dx + dz * dz;
+
 
             // Collect blocks we plan to edit
             if (distanceSQ <= radiusSQ && shouldEditPos(dx, dz, size, feathering)) {
@@ -92,9 +98,7 @@ export function antimatterBlast(tileMapGrid: TileMap2D,
                 });
             }
 
-            lastX = tileX;
             lastZ = tileZ;
-
         }
     }
 

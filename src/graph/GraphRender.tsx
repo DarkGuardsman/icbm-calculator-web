@@ -7,6 +7,7 @@ import Map2D, {TileMap2D} from "../api/Map2D";
 import PathData2D from "../api/PathData2D";
 import {getTile, getTileData} from "../funcs/TileFuncs";
 import {isDefined, sortNum} from "../funcs/Helpers";
+import {pos2DEquals} from "../common/Pos2DHelpers";
 
 export interface GraphPaperProps {
 
@@ -125,53 +126,89 @@ function drawLines(ctx: CanvasRenderingContext2D, width: number, height: number,
     const largestEnergy = energyEntries.length > 0 ? energyEntries[energyEntries.length - 1] : undefined;
     sortedLines.forEach((line) => {
 
+
+
         let renderScale = gridRenderSize;
         if (isDefined(line.meta.energyLeft) && isDefined(largestEnergy)) {
             const energyScale = 1 - Math.max(0, line.meta.energyLeft) / largestEnergy;
             renderScale -= gridRenderSize * energyScale * 0.8;
         }
 
-        const arrowSize = renderScale * dotSize * 3;
-        const arrowLineEndOffset = arrowSize / 3;
-        const lineWidth = lineSize * renderScale;
+        // Likely start point
+        if(pos2DEquals(line.end, line.start, 0.0001)) {
+            ctx.fillStyle = 'grey';
+            ctx.fillRect(
+                line.start.x * gridRenderSize - dotSize * renderScale,
+                line.start.y * gridRenderSize - dotSize * renderScale,
+                dotSize * renderScale * 2,
+                dotSize * renderScale * 2
+            );
 
-        const sx = line.start.x * gridRenderSize;
-        const sy = line.start.y * gridRenderSize;
-        const ex = line.end.x * gridRenderSize;
-        const ey = line.end.y * gridRenderSize
-
-        const angle = Math.atan2(ey - sy, ex - sx);
-
-        // Start Cap
-        ctx.beginPath();
-        ctx.arc(sx, sy, lineWidth / 1.5, 0, 2 * Math.PI);
-        ctx.fillStyle = getLineEndColor(line);
-        ctx.fill();
-
-        // Line
-        ctx.beginPath();
-        ctx.moveTo(sx, sy);
-        ctx.lineTo(ex - arrowLineEndOffset * Math.cos(angle), ey - arrowLineEndOffset * Math.sin(angle));
-        ctx.strokeStyle = getLineEndColor(line); //TODO generate random color per source phase and store in state
-        ctx.lineWidth = lineWidth;
-        ctx.stroke();
-
-        if(line.meta?.endType === 'done') {
             ctx.beginPath();
-            ctx.arc(line.end.x * gridRenderSize, line.end.y * gridRenderSize, dotSize * renderScale, 0, 2 * Math.PI);
-            ctx.fillStyle = 'blue'; //TODO generate random color per source phase and store in state
+            ctx.arc(line.end.x * gridRenderSize, line.end.y * gridRenderSize, dotSize * renderScale * 0.8, 0, 2 * Math.PI);
+            ctx.fillStyle = getNodeResultColor(line); //TODO generate random color per source phase and store in state
             ctx.fill();
         }
+        else {
+            const arrowSize = renderScale * dotSize * 3;
+            const arrowLineEndOffset = arrowSize / 3;
+            const lineWidth = lineSize * renderScale;
 
-        // Arrow
-        ctx.fillStyle = getLineEndColor(line);
-        ctx.beginPath();
-        ctx.moveTo(ex, ey);
-        ctx.lineTo(ex - arrowSize * Math.cos(angle - Math.PI / 6), ey - arrowSize * Math.sin(angle - Math.PI / 6));
-        ctx.lineTo(ex - arrowSize * Math.cos(angle + Math.PI / 6), ey - arrowSize * Math.sin(angle + Math.PI / 6));
-        ctx.closePath();
-        ctx.fill();
+            const sx = line.start.x * gridRenderSize;
+            const sy = line.start.y * gridRenderSize;
+            const ex = line.end.x * gridRenderSize;
+            const ey = line.end.y * gridRenderSize
+
+            const angle = Math.atan2(ey - sy, ex - sx);
+
+            // Start Cap
+            ctx.beginPath();
+            ctx.arc(sx, sy, lineWidth / 1.5, 0, 2 * Math.PI);
+            ctx.fillStyle = getLineEndColor(line);
+            ctx.fill();
+
+            // Line
+            ctx.beginPath();
+            ctx.moveTo(sx, sy);
+            ctx.lineTo(ex - arrowLineEndOffset * Math.cos(angle), ey - arrowLineEndOffset * Math.sin(angle));
+            ctx.strokeStyle = getLineEndColor(line); //TODO generate random color per source phase and store in state
+            ctx.lineWidth = lineWidth;
+            ctx.stroke();
+
+            if (isDefined(line.meta?.nodeType) && line.meta.nodeType !== 'ignore') {
+                ctx.beginPath();
+                ctx.arc(line.end.x * gridRenderSize, line.end.y * gridRenderSize, dotSize * renderScale * 1.2, 0, 2 * Math.PI);
+                ctx.fillStyle = 'black'
+                ctx.fill();
+
+                ctx.beginPath();
+                ctx.arc(line.end.x * gridRenderSize, line.end.y * gridRenderSize, dotSize * renderScale * 0.8, 0, 2 * Math.PI);
+                ctx.fillStyle = getNodeResultColor(line); //TODO generate random color per source phase and store in state
+                ctx.fill();
+
+                // TODO for collision draw rect to visualize a wall and to be more visual friendly
+            }
+
+            // Arrow
+            ctx.fillStyle = getLineEndColor(line);
+            ctx.beginPath();
+            ctx.moveTo(ex, ey);
+            ctx.lineTo(ex - arrowSize * Math.cos(angle - Math.PI / 6), ey - arrowSize * Math.sin(angle - Math.PI / 6));
+            ctx.lineTo(ex - arrowSize * Math.cos(angle + Math.PI / 6), ey - arrowSize * Math.sin(angle + Math.PI / 6));
+            ctx.closePath();
+            ctx.fill();
+        }
     });
+}
+
+function getNodeResultColor(line: PathData2D) {
+    if(line.meta?.nodeType === 'hit') {
+        return 'red';
+    }
+    else if(line.meta?.nodeType === 'action') {
+        return 'yellow';
+    }
+    return 'grey';
 }
 
 function getLineEndColor(line: PathData2D) {
