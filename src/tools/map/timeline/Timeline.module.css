@@ -5,15 +5,68 @@
     border: 1px black solid;
 }
 
+.header {
+    display: flex;
+    flex-direction: row;
+
+    height: 30px;
+
+    border-bottom: 1px black solid;
+}
+
 .title {
     color:white;
     font-weight: bold;
+    line-height: 20px;
+    padding: 5px;
+}
+
+.label {
+    color:white;
+    border-left: 1px black solid;
+}
+
+.control {
+    display: flex;
+    flex-direction: row;
+
+    border: 1px black solid;
+
+    padding: 5px;
 }
 
 .entries {
     display: flex;
     flex-direction: row;
 
-    height: 50px;
+    height: 80px;
     color: white;
+
+    gap: 10px;
+
+    overflow-x: auto;
+}
+
+.bookmark {
+    color:white;
+    background-color: #4d4e51;
+    min-width: 100px;
+}
+
+.bookmarkSet {
+    display: flex;
+    flex-direction: row;
+}
+
+.source {
+    font-weight: bold;
+    height: 70px;
+}
+
+.phase {
+    height: 50px;
+}
+
+.played {
+    background-color: #787575;
 }

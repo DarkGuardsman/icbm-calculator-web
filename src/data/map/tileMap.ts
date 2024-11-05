@@ -22,16 +22,21 @@ export interface TileMapState {
         /** Edits applied to map, sorted by index */
         entries: MapSimEntry2D[];
         /** Edit phase to first index it shows */
-        bookmarks: EditTimelineBookmark[];
+        bookmarks: EditTimelineSource[];
         /** Largest edit index value */
         maxIndex: number;
         currentIndex: number;
     };
 }
 
+export interface EditTimelineSource {
+    label: string;
+    index: number;
+    entries: EditTimelineBookmark[]
+}
+
 export interface EditTimelineBookmark {
-    type: 'source' | 'phase';
-    key: string;
+    label: string;
     index: number;
 }
 
@@ -87,41 +92,56 @@ export const tileMapSlice = createSlice({
                     }
                 });
             });
+            editArray.sort((a, b) => sortNum(a.index, b.index));
 
             // Capture bookmarks by using phase
-            const bookmarks: { [key: string]: EditTimelineBookmark } = {};
+            const sourceToBookmarks: {
+                [key: string]: {
+                    index: number;
+                    label: string;
+                    entries: { [key: string]: EditTimelineBookmark }
+                }
+            } = {};
             editArray.forEach(e => {
                 const sourceKey = e.meta?.source?.key;
                 const phaseKey = e.meta?.source?.phase;
                 if (isDefined(sourceKey)) {
 
                     // Add bookmark for source start
-                    if (!isDefined(bookmarks[sourceKey])) {
-                        bookmarks[sourceKey] = {
+                    if (!isDefined(sourceToBookmarks[sourceKey])) {
+                        sourceToBookmarks[sourceKey] = {
                             index: e.index,
-                            key: sourceKey,
-                            type: 'source'
+                            label: sourceKey,
+                            entries: {}
                         };
+                    } else {
+                        sourceToBookmarks[sourceKey].index = e.index;
                     }
 
                     if (isDefined(phaseKey)) {
-                        const key = sourceKey + ":" + phaseKey;
                         // Add bookmark for phase
-                        if (!isDefined(bookmarks[key])) {
-                            bookmarks[key] = {
+                        if (!isDefined(sourceToBookmarks[sourceKey].entries[phaseKey])) {
+                            sourceToBookmarks[sourceKey].entries[phaseKey] = {
                                 index: e.index,
-                                key,
-                                type: 'phase'
+                                label: phaseKey
                             };
+                        } else {
+                            sourceToBookmarks[sourceKey].entries[phaseKey].index = e.index;
                         }
                     }
                 }
             });
 
-            // Sort index entries and store updates
-            editArray.sort((a, b) => sortNum(a.index, b.index));
+            const bookmarkArray: EditTimelineSource[] = Object.values(sourceToBookmarks).map(s => {
+                return {
+                    label: s.label,
+                    index: s.index,
+                    entries: Object.values(s.entries).sort((a, b) => sortNum(a.index, b.index))
+                }
+            }).sort((a, b) => sortNum(a.index, b.index));
+
             state.edits = {
-                bookmarks: Object.values(bookmarks).sort((a, b) => sortNum(a.index, b.index)),
+                bookmarks: bookmarkArray,
                 maxIndex: editArray.length > 0 ? editArray[editArray.length - 1].index : 0,
                 currentIndex: editArray.length > 0 ? editArray[editArray.length - 1].index : 0,
                 entries: editArray
@@ -271,5 +291,6 @@ export const selectTiles = (state: RootState) => state.map2D.tiles;
 export const selectPaths = (state: RootState) => state.map2D.paths;
 export const selectPathHeat = (state: RootState) => state.map2D.pathHeat;
 export const currentEditIndex = (state: RootState) => state.map2D.edits.currentIndex;
+export const editBookmarks = (state: RootState) => state.map2D.edits.bookmarks;
 
 export default tileMapSlice.reducer;
