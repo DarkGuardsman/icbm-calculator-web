@@ -11,6 +11,10 @@ import Pos2D from "../../api/Pos2D";
 import {SIDES_2D} from "../../common/Consts";
 import {addPos2D, pos2DEquals} from "../../common/Pos2DHelpers";
 
+interface PathStep extends Pos2D {
+    step: number;
+}
+
 
 function doPath(tileMapGrid: TileMap2D,
                 applyEdits: (edits: SimEntryMap2D) => void,
@@ -26,7 +30,7 @@ function doPath(tileMapGrid: TileMap2D,
 
     const edits: SimEntryMap2D = initEdits();
 
-    const stack: Pos2D[] = [{x: centerX, y: centerY}];
+    const stack: PathStep[] = [{x: centerX, y: centerY, step: 0}];
 
     while (stack.length > 0) {
         const nextPos = stack.pop();
@@ -47,15 +51,18 @@ function doPath(tileMapGrid: TileMap2D,
         for(let i = 0; i < nextTiles.length; i++) {
             const nextTile = nextTiles[i];
 
-            const deltaX = centerX - nextPos.x;
-            const deltaY = centerY - nextPos.y;
-            const distance = Math.abs(deltaX) + Math.abs(deltaY); // TODO add selector to change which distance alg is used
+            //const deltaX = centerX - nextPos.x;
+            //const deltaY = centerY - nextPos.y;
+            //const distance = Math.abs(deltaX) + Math.abs(deltaY); // TODO add selector to change which distance alg is used
 
-            const atLimit = distance >= maxDepth;
+            const atLimit = nextPos.step + 1 >= maxDepth;
             const hasPathed = map2DContainsPos(edits, nextTile.x, nextTile.y);
 
             if(!hasPathed && !atLimit) {
-                stack.push(nextTile);
+                stack.push({
+                    ...nextTile,
+                    step: nextPos.step + 1
+                });
             }
 
             addSimEntry(edits, {
@@ -80,7 +87,9 @@ function doPath(tileMapGrid: TileMap2D,
                             y: nextTile.y + 0.5
                         },
                         meta: {
-                            endType: atLimit ? 'done' : (hasPathed ? 'collision' : 'continue')
+                            endType: atLimit ? 'done' : (hasPathed ? 'collision' : 'continue'),
+                            energyLeft: maxDepth - nextPos.step - 1,
+                            energyCost: 1
                         }
                     }
                 }

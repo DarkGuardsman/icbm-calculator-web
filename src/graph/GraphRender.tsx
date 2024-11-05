@@ -145,32 +145,46 @@ function drawLines(ctx: CanvasRenderingContext2D, width: number, height: number,
         // Start Cap
         ctx.beginPath();
         ctx.arc(sx, sy, lineWidth / 1.5, 0, 2 * Math.PI);
-        ctx.fillStyle = 'black';
+        ctx.fillStyle = getLineEndColor(line);
         ctx.fill();
 
         // Line
         ctx.beginPath();
         ctx.moveTo(sx, sy);
         ctx.lineTo(ex - arrowLineEndOffset * Math.cos(angle), ey - arrowLineEndOffset * Math.sin(angle));
-        ctx.strokeStyle = 'black'; //TODO generate random color per source phase and store in state
+        ctx.strokeStyle = getLineEndColor(line); //TODO generate random color per source phase and store in state
         ctx.lineWidth = lineWidth;
         ctx.stroke();
 
+        if(line.meta?.endType === 'done') {
+            ctx.beginPath();
+            ctx.arc(line.end.x * gridRenderSize, line.end.y * gridRenderSize, dotSize * renderScale, 0, 2 * Math.PI);
+            ctx.fillStyle = 'blue'; //TODO generate random color per source phase and store in state
+            ctx.fill();
+        }
+
         // Arrow
-        ctx.fillStyle = 'grey';
+        ctx.fillStyle = getLineEndColor(line);
         ctx.beginPath();
         ctx.moveTo(ex, ey);
         ctx.lineTo(ex - arrowSize * Math.cos(angle - Math.PI / 6), ey - arrowSize * Math.sin(angle - Math.PI / 6));
         ctx.lineTo(ex - arrowSize * Math.cos(angle + Math.PI / 6), ey - arrowSize * Math.sin(angle + Math.PI / 6));
         ctx.closePath();
         ctx.fill();
-
-        // End Cap TODO add toggle (user and code[vector<arrow>,directionless<dot>]) to flip between different end caps
-        //ctx.beginPath();
-        //ctx.arc(line.end.x * gridRenderSize, line.end.y * gridRenderSize, dotSize * gridRenderSize, 0, 2 * Math.PI);
-        //ctx.fillStyle = 'grey'; //TODO generate random color per source phase and store in state
-        //ctx.fill();
     });
+}
+
+function getLineEndColor(line: PathData2D) {
+    if(line.meta?.endType === 'collision') {
+        return 'red';
+    }
+    else if(line.meta?.endType === 'dead') {
+        return 'black';
+    }
+    else if(line.meta?.endType === 'done') {
+        return 'blue';
+    }
+    return 'grey';
 }
 
 
