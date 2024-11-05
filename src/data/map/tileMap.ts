@@ -1,10 +1,10 @@
 import {createSlice, PayloadAction} from "@reduxjs/toolkit";
 import {RootState} from "../store";
-import {isDefined} from "../../funcs/Helpers";
+import {getLastValue, isDefined, sortNum} from "../../funcs/Helpers";
 import MapSimEntry2D from "../../api/MapSimEntry2D";
 import Map2D, {SimEntryMap2D, TileMap2D} from "../../api/Map2D";
 import PathData2D from "../../api/PathData2D";
-import {getTileData, setTileData} from "../../funcs/TileFuncs";
+import {getTileData, loopMapEntries, setTileData} from "../../funcs/TileFuncs";
 
 export interface TileMapState {
     /** Tiles to render on the grid */
@@ -16,6 +16,22 @@ export interface TileMapState {
 
     /** Number of path end points at a given point */
     pathHeat: Map2D<number>;
+
+    /** Edit data, used for timeline playback and scrubbing */
+    edits: {
+        /** Edits applied to map, sorted by index */
+        entries: MapSimEntry2D[];
+        /** Edit phase to first index it shows */
+        bookmarks: EditTimelineBookmark[];
+        /** Largest edit index value */
+        maxIndex: number;
+    };
+}
+
+export interface EditTimelineBookmark {
+    type: 'source' | 'phase';
+    key: string;
+    index: number;
 }
 
 const initialState: TileMapState = {
@@ -30,7 +46,6 @@ const initialState: TileMapState = {
             y: 0
         }
     },
-    paths: [],
     pathHeat: {
         data: {},
         start: {
@@ -41,7 +56,13 @@ const initialState: TileMapState = {
             x: 0,
             y: 0
         }
-    }
+    },
+    edits: {
+        entries: [],
+        bookmarks: [],
+        maxIndex: 0
+    },
+    paths: []
 }
 
 export const tileMapSlice = createSlice({
@@ -62,6 +83,61 @@ export const tileMapSlice = createSlice({
                 (edit) => isDefined(edit?.meta?.path),
                 (edits, prev) => (prev ?? 0) + edits.filter(e => isDefined(e.meta.path)).length
             );
+
+            // Convert edits into array for easy playback
+            const editArray = [...state.edits.entries];
+            loopMapEntries(editMap, (entries) => {
+                entries.forEach(e => {
+                    editArray.push(e);
+                    if (!isDefined(e.index)) {
+                        console.error("missing index, will cause playback issues", e)
+                    }
+                });
+            });
+
+            // Capture bookmarks by using phase
+            const bookmarks: { [key: string]: EditTimelineBookmark } = {};
+            editArray.forEach(e => {
+                const sourceKey = e.meta?.source?.key;
+                const phaseKey = e.meta?.source?.phase;
+                if (isDefined(sourceKey)) {
+
+                    // Add bookmark for source start
+                    if (!isDefined(bookmarks[sourceKey])) {
+                        bookmarks[sourceKey] = {
+                            index: e.index,
+                            key: sourceKey,
+                            type: 'source'
+                        };
+                    }
+
+                    if (isDefined(phaseKey)) {
+                        const key = sourceKey + ":" + phaseKey;
+                        // Add bookmark for phase
+                        if (!isDefined(bookmarks[key])) {
+                            bookmarks[key] = {
+                                index: e.index,
+                                key,
+                                type: 'phase'
+                            };
+                        }
+                    }
+                }
+            });
+
+            // Sort index entries and store updates
+            editArray.sort((a, b) => sortNum(a.index, b.index));
+            state.edits = {
+                bookmarks: Object.values(bookmarks).sort((a, b) => sortNum(a.index, b.index)),
+                maxIndex: editArray.length > 0 ? editArray[editArray.length - 1].index : 0,
+                entries: editArray
+            }
+        },
+        selectEditIndex: (state, action: PayloadAction<number>) => {
+            //TODO use edit array to create a new edit map
+            //          use edit map to generate tiles, paths, and heat
+
+            //TODO if moving forward small amounts attempt to play next edit or undo last edit to reduce recalculation delay
         },
         clearTiles: (state) => {
             state.tiles = {
@@ -76,6 +152,11 @@ export const tileMapSlice = createSlice({
                 }
             };
             state.paths = [];
+            state.edits = {
+                entries: [],
+                bookmarks: [],
+                maxIndex: 0
+            };
             state.pathHeat = {
                 data: {},
                 start: {
