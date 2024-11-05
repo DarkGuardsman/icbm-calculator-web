@@ -1,0 +1,19 @@
+.panel {
+    display: flex;
+    flex-direction: column;
+
+    border: 1px black solid;
+}
+
+.title {
+    color:white;
+    font-weight: bold;
+}
+
+.entries {
+    display: flex;
+    flex-direction: row;
+
+    height: 50px;
+    color: white;
+}

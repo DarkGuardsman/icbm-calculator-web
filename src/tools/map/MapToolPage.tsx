@@ -13,6 +13,7 @@ import {applySimEntries, clearTiles} from "../../data/map/tileMap";
 import IMapModifier from "../modifiers/types";
 import {initEdits, SimEntryMap2D} from "../../api/Map2D";
 import {isDefined} from "../../funcs/Helpers";
+import {Timeline} from "./timeline/Timeline";
 
 let simEditIndex = 0;
 export function incrementSimEdit() :number {
@@ -199,6 +200,7 @@ export default function MapToolPage() {
                     </div>
                 </div>
                 <div className={styles.contentBottom}>
+                    <Timeline/>
                     <SimulationSelector
                         hasRun={hasRun}
                         onRun={() => setHasRun(true)}

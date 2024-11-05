@@ -8,6 +8,7 @@
     height: 100%;
 
     --right-width: 350px;
+    --bottom-height: 250px;
 }
 
 .label {
@@ -15,7 +16,7 @@
 }
 
 .contentTop {
-    height: calc(100% - 200px);
+    height: calc(100% - var(--bottom-height));
 
     width: 100%;
 
@@ -24,7 +25,6 @@
 }
 
 .contentBottom {
-    height: 200px;
 }
 
 .center {

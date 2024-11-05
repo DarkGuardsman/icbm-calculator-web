@@ -2,9 +2,9 @@ import {createSlice, PayloadAction} from "@reduxjs/toolkit";
 import {RootState} from "../store";
 import {getLastValue, isDefined, sortNum} from "../../funcs/Helpers";
 import MapSimEntry2D from "../../api/MapSimEntry2D";
-import Map2D, {SimEntryMap2D, TileMap2D} from "../../api/Map2D";
+import Map2D, {initEdits, SimEntryMap2D, TileMap2D} from "../../api/Map2D";
 import PathData2D from "../../api/PathData2D";
-import {getTileData, loopMapEntries, setTileData} from "../../funcs/TileFuncs";
+import {addSimEntry, getTileData, loopMapEntries, setTileData} from "../../funcs/TileFuncs";
 
 export interface TileMapState {
     /** Tiles to render on the grid */
@@ -25,6 +25,7 @@ export interface TileMapState {
         bookmarks: EditTimelineBookmark[];
         /** Largest edit index value */
         maxIndex: number;
+        currentIndex: number;
     };
 }
 
@@ -58,6 +59,7 @@ const initialState: TileMapState = {
         }
     },
     edits: {
+        currentIndex: 0,
         entries: [],
         bookmarks: [],
         maxIndex: 0
@@ -72,17 +74,8 @@ export const tileMapSlice = createSlice({
         applySimEntry: (state: TileMapState, action: PayloadAction<MapSimEntry2D>) => applyEdit(state, action.payload),
         applySimEntries: (state: TileMapState, action: PayloadAction<SimEntryMap2D>) => {
             const editMap = action.payload;
-            state.tiles = mergeEdits<number>(state.tiles, editMap,
-                (edit) => isDefined(edit?.edit?.newTile),
-                (edits) => getLastValue(edits, (edit) => edit?.edit?.newTile)
-            );
 
-            state.paths = collectPaths(state.paths, editMap);
-
-            state.pathHeat = mergeEdits<number>(state.pathHeat, editMap,
-                (edit) => isDefined(edit?.meta?.path),
-                (edits, prev) => (prev ?? 0) + edits.filter(e => isDefined(e.meta.path)).length
-            );
+            applyEditMap(state, editMap);
 
             // Convert edits into array for easy playback
             const editArray = [...state.edits.entries];
@@ -130,47 +123,81 @@ export const tileMapSlice = createSlice({
             state.edits = {
                 bookmarks: Object.values(bookmarks).sort((a, b) => sortNum(a.index, b.index)),
                 maxIndex: editArray.length > 0 ? editArray[editArray.length - 1].index : 0,
+                currentIndex: editArray.length > 0 ? editArray[editArray.length - 1].index : 0,
                 entries: editArray
             }
         },
         selectEditIndex: (state, action: PayloadAction<number>) => {
-            //TODO use edit array to create a new edit map
-            //          use edit map to generate tiles, paths, and heat
+            state.edits = {
+                ...state.edits,
+                currentIndex: action.payload
+            };
+            clearEditData(state);
+
+            // Build new edit map
+            const editMap = initEdits();
+            state.edits.entries
+                .filter(e => e.index <= state.edits.currentIndex)
+                .forEach(e => {
+                    addSimEntry(editMap, e);
+                });
+
+            // Apply map
+            applyEditMap(state, editMap);
 
             //TODO if moving forward small amounts attempt to play next edit or undo last edit to reduce recalculation delay
         },
         clearTiles: (state) => {
-            state.tiles = {
-                data: {},
-                start: {
-                    x: 0,
-                    y: 0
-                },
-                end: {
-                    x: 0,
-                    y: 0
-                }
-            };
-            state.paths = [];
             state.edits = {
                 entries: [],
                 bookmarks: [],
-                maxIndex: 0
+                maxIndex: 0,
+                currentIndex: 0
             };
-            state.pathHeat = {
-                data: {},
-                start: {
-                    x: 0,
-                    y: 0
-                },
-                end: {
-                    x: 0,
-                    y: 0
-                }
-            }
+            clearEditData(state);
         }
     }
 });
+
+function clearEditData(state: TileMapState) {
+    state.tiles = {
+        data: {},
+        start: {
+            x: 0,
+            y: 0
+        },
+        end: {
+            x: 0,
+            y: 0
+        }
+    };
+    state.paths = [];
+    state.pathHeat = {
+        data: {},
+        start: {
+            x: 0,
+            y: 0
+        },
+        end: {
+            x: 0,
+            y: 0
+        }
+    }
+}
+
+function applyEditMap(state: TileMapState, editMap: SimEntryMap2D) {
+    state.tiles = mergeEdits<number>(state.tiles, editMap,
+        (edit) => isDefined(edit?.edit?.newTile),
+        (edits) => getLastValue(edits, (edit) => edit?.edit?.newTile)
+    );
+
+    state.paths = collectPaths(state.paths, editMap);
+
+    state.pathHeat = mergeEdits<number>(state.pathHeat, editMap,
+        (edit) => isDefined(edit?.meta?.path),
+        (edits, prev) => (prev ?? 0) + edits.filter(e => isDefined(e.meta.path)).length
+    );
+}
 
 function collectPaths(existingPaths: PathData2D[], editMap: SimEntryMap2D) {
 
@@ -238,10 +265,11 @@ function applyEdit(state: TileMapState, simEntry: MapSimEntry2D) {
     }
 }
 
-export const {applySimEntry, applySimEntries, clearTiles} = tileMapSlice.actions;
+export const {applySimEntry, applySimEntries, clearTiles, selectEditIndex} = tileMapSlice.actions;
 
 export const selectTiles = (state: RootState) => state.map2D.tiles;
 export const selectPaths = (state: RootState) => state.map2D.paths;
 export const selectPathHeat = (state: RootState) => state.map2D.pathHeat;
+export const currentEditIndex = (state: RootState) => state.map2D.edits.currentIndex;
 
 export default tileMapSlice.reducer;
