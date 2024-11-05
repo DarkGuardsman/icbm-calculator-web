@@ -18,6 +18,15 @@ export default interface PathData2D {
  * Context metadata about the path
  */
 export interface PathData2DMeta {
+    /** What type of end result did the path produce?
+     * 'continue' means the path moved to the next position
+     * 'done' means it hit some stopping limit
+     * 'collision' means it hit a previous path and stopped
+     * 'dead' means the path ran out of options
+     *
+     * Default is assumed to be 'continue' if undefined
+     * */
+    endType?: 'continue' | 'done' | 'collision' | 'dead'
     /** Energy left after processing the ray */
     energyLeft?: number;
     /** Energy cost of the ray step, usually this is the tile's energy cost with a modifier */

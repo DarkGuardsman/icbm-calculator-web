@@ -32,6 +32,10 @@ export function addSimEntry(map: SimEntryMap2D, edit: MapSimEntry2D) {
     map.end.y = Math.max(map.end.y, edit.y);
 }
 
+export function map2DContainsPos<T>(map: Map2D<T>, x: number, y: number) {
+    return isDefined(map?.data) && isDefined(map.data[y]) && isDefined(map.data[y][x]);
+}
+
 export function setTileData<T>(x: number, y: number, data: T, map: Map2D<T>) {
     if (!isDefined(map.data[y])) {
         map.data[y] = {

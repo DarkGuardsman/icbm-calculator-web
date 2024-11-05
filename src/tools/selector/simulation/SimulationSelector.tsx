@@ -12,6 +12,7 @@ import ValueDefined from "../../../components/ValueDefined";
 import SimulationArgsPanel from "./args/panel/SimulationArgsPanel";
 import {NUKE_SIM_ENTRY, SONIC_ENTRY, THERMOBARIC_ENTRY} from "../../../funcs/sims/LargeBlast";
 import {ANTIMATTER_ENTRY} from "../../../funcs/sims/AntimatterBlast";
+import {DEPTH_FIRST_EXPAND} from "../../../funcs/sims/DepthFirstPath";
 
 export interface TestArgs {
     tabs: TestArgTab[];
@@ -59,6 +60,7 @@ const testOptions: TestTypeEntry[] = [
     THERMOBARIC_ENTRY,
     NUKE_SIM_ENTRY,
     ANTIMATTER_ENTRY,
+    DEPTH_FIRST_EXPAND,
     {
         id: "random:fill",
         description: "Fills entire map, mostly exists for testing the runtime",
