@@ -92,3 +92,18 @@ export function fillTiles(map: SimEntryMap2D, startX: number, startY :number, wi
         }
     }
 }
+
+export function loopMapEntries<T>(map: Map2D<T>, each: (value: T) => void) {
+    const entryData = map.data;
+    Object.keys(entryData)
+        .forEach(yKey => {
+            const y = yKey as unknown as number;
+            Object.keys(entryData[y]).forEach(xKey => {
+                const x = xKey as unknown as number;
+                const value = getTileData(x, y, map);
+                if (isDefined(value)) {
+                    each(value);
+                }
+            });
+        });
+}

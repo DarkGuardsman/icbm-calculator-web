@@ -91,53 +91,29 @@ export const tileMapSlice = createSlice({
     }
 });
 
-function getLastValue<T>(edits: MapSimEntry2D[], accessor: (edit: MapSimEntry2D) => T): T | undefined {
-    for(let i = edits.length - 1; i >= 0; i--) {
-        const value = accessor(edits[i]);
-        if(isDefined(value)) {
-            return value;
-        }
-    }
-    return undefined;
-}
-
 function collectPaths(existingPaths: PathData2D[], editMap: SimEntryMap2D) {
 
     const paths = [...existingPaths];
-    const edits = editMap.data;
-    Object.keys(edits)
-        .forEach(yKey => {
-            const y = yKey as unknown as number;
-
-            Object.keys(edits[y]).forEach(xKey => {
-                const x = xKey as unknown as number;
-                if (edits[y][x]?.length > 0) {
-                    const edits = getTileData(x, y, editMap);
-                    if (isDefined(edits)) {
-                        edits
-                            .forEach(edit => {
-                                const path = edit.meta?.path
-                                if (isDefined(path)) {
-                                    paths.push({
-                                        ...path,
-                                        index: edit.index,
-                                        //TODO add simEditIndex for sorting
-                                        meta: {
-                                            ...path.meta,
-                                            source: edit.meta.source
-                                        }
-                                    })
-                                }
-                            })
+    loopMapEntries(editMap, (values) => {
+        values.forEach(edit => {
+            const path = edit.meta?.path
+            if (isDefined(path)) {
+                paths.push({
+                    ...path,
+                    index: edit.index,
+                    //TODO add simEditIndex for sorting
+                    meta: {
+                        ...path.meta,
+                        source: edit.meta.source
                     }
-                }
-            });
-        });
-
+                })
+            }
+        })
+    });
     return paths;
 }
 
-function mergeEdits<T>(oldMap: Map2D<T>, editMap: SimEntryMap2D, validator: (edit: MapSimEntry2D) => boolean, dataAccessor: (edits: MapSimEntry2D[], prev: T) => T|undefined): Map2D<T> {
+function mergeEdits<T>(oldMap: Map2D<T>, editMap: SimEntryMap2D, validator: (edit: MapSimEntry2D) => boolean, dataAccessor: (edits: MapSimEntry2D[], prev: T) => T | undefined): Map2D<T> {
     const newMap = {
         data: {...oldMap.data},
         start: {
@@ -162,7 +138,7 @@ function mergeEdits<T>(oldMap: Map2D<T>, editMap: SimEntryMap2D, validator: (edi
                 const tileSimEntries = getTileData(x, y, editMap)?.filter((e) => validator(e));
                 if (isDefined(tileSimEntries) && tileSimEntries.length > 0) {
                     const valueToSet = dataAccessor(tileSimEntries, tiles[y][x]);
-                    if(isDefined(valueToSet)) {
+                    if (isDefined(valueToSet)) {
                         tiles[y][x] = valueToSet;
                     }
                 }
@@ -174,7 +150,7 @@ function mergeEdits<T>(oldMap: Map2D<T>, editMap: SimEntryMap2D, validator: (edi
 function applyEdit(state: TileMapState, simEntry: MapSimEntry2D) {
     const {x, y, edit} = simEntry;
     const newTile = edit?.newTile;
-    if(isDefined(newTile)) {
+    if (isDefined(newTile)) {
         const newTiles = {...state.tiles};
         setTileData(x, y, newTile, newTiles);
         state.tiles = newTiles;
