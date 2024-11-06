@@ -43,6 +43,9 @@ export function largeBlast(tileMapGrid: TileMap2D,
 
         let x = centerX;
         let z = centerZ;
+        let prevX = x;
+        let prevZ = z;
+
 
         let distance = 0;
 
@@ -93,14 +96,15 @@ export function largeBlast(tileMapGrid: TileMap2D,
                     },
                     path: {
                         start: {
-                            x,
-                            y: z
+                            x: prevX,
+                            y: prevZ
                         },
                         end: {
-                            x: x + dx,
-                            y: z + dz
+                            x: x,
+                            y: z
                         },
                         meta: {
+                            nodePos: 'end',
                             endType: powerForRay - cost <= 0 ? 'done' : 'continue',
                             nodeType: !willBreak ? 'ignore' : 'action',
                             energyLeft: powerForRay - cost,
@@ -115,6 +119,8 @@ export function largeBlast(tileMapGrid: TileMap2D,
             // Track previous tile
             prevTileX = tileX;
             prevTileZ = tileZ;
+            prevX = x;
+            prevZ = z;
 
             //Move forward
             x += dx;
