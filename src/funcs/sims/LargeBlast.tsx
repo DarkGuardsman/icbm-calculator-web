@@ -71,7 +71,7 @@ export function largeBlast(tileMapGrid: TileMap2D,
 
             // Alg tries to run 1 edit per block per ray.
             if (prevTileX !== tileX || prevTileZ !== tileZ) {
-                tile = getTile(x, z, tileMapGrid);
+                tile = getTile(tileX, tileZ, tileMapGrid);
                 cost = getExplosiveResistance(tile);
                 willBreak = tile !== TILE_AIR && tile.hardness >= 0 && powerForRay - cost >= 0;
             }
