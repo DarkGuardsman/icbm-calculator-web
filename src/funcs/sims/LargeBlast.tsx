@@ -80,7 +80,7 @@ export function largeBlast(tileMapGrid: TileMap2D,
                 x: tileX,
                 y: tileZ,
                 index: incrementSimEdit(),
-                edit: (tile === TILE_VOID || !willBreak) ? undefined : {
+                edit: !willBreak ? undefined : {
                     newTile: TILE_AIR.index,
                     oldTile: tile.index
                 },
@@ -101,6 +101,8 @@ export function largeBlast(tileMapGrid: TileMap2D,
                             y: z + dz
                         },
                         meta: {
+                            endType: powerForRay - cost <= 0 ? 'done' : 'continue',
+                            nodeType: !willBreak ? 'ignore' : 'action',
                             energyLeft: powerForRay - cost,
                             energyCost: cost
                         }
