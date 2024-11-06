@@ -39,6 +39,14 @@ export interface PathData2DMeta {
      * This changes what type of node is drawn at the end position
      */
     nodeType? : 'hit' | 'action' | 'ignore',
+    /**
+     * Which end of the ray is the node or action position
+     *
+     * 'start' will use {@link PathData2D#start}
+     * 'end' will use {@link PathData2D#end}
+     * Default is end
+     */
+    nodePos? : 'start' | 'end',
     /** Energy left after processing the ray */
     energyLeft?: number;
     /** Energy cost of the ray step, usually this is the tile's energy cost with a modifier */

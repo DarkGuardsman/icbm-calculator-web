@@ -161,7 +161,24 @@ function drawLines(ctx: CanvasRenderingContext2D, width: number, height: number,
 
             const angle = Math.atan2(ey - sy, ex - sx);
 
-            // Start Cap
+            const startNode = line.meta?.nodePos !== 'end';
+
+            // Action node - Start
+            if (startNode && isDefined(line.meta?.nodeType) && line.meta.nodeType !== 'ignore') {
+                ctx.beginPath();
+                ctx.arc(line.end.x * gridRenderSize, line.end.y * gridRenderSize, dotSize * renderScale * 1.2, 0, 2 * Math.PI);
+                ctx.fillStyle = 'black'
+                ctx.fill();
+
+                ctx.beginPath();
+                ctx.arc(line.end.x * gridRenderSize, line.end.y * gridRenderSize, dotSize * renderScale * 0.8, 0, 2 * Math.PI);
+                ctx.fillStyle = getNodeResultColor(line); //TODO generate random color per source phase and store in state
+                ctx.fill();
+
+                // TODO for collision draw rect to visualize a wall and to be more visual friendly
+            }
+
+            // Line Start Cap
             ctx.beginPath();
             ctx.arc(sx, sy, lineWidth / 1.5, 0, 2 * Math.PI);
             ctx.fillStyle = getLineEndColor(line);
@@ -175,7 +192,8 @@ function drawLines(ctx: CanvasRenderingContext2D, width: number, height: number,
             ctx.lineWidth = lineWidth;
             ctx.stroke();
 
-            if (isDefined(line.meta?.nodeType) && line.meta.nodeType !== 'ignore') {
+            // Action node - End
+            if (!startNode && isDefined(line.meta?.nodeType) && line.meta.nodeType !== 'ignore') {
                 ctx.beginPath();
                 ctx.arc(line.end.x * gridRenderSize, line.end.y * gridRenderSize, dotSize * renderScale * 1.2, 0, 2 * Math.PI);
                 ctx.fillStyle = 'black'
