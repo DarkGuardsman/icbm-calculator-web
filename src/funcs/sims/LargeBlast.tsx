@@ -49,8 +49,6 @@ export function largeBlast(tileMapGrid: TileMap2D,
         let prevTileX: number = Number.MAX_SAFE_INTEGER;
         let prevTileZ: number = Number.MAX_SAFE_INTEGER;
 
-        // Debug
-        let stepIndexThisRay = 0;
 
         // Randomize power per ray
         let powerForRay = energy - (energy * Math.random() / 2); //TODO add customization
@@ -90,7 +88,7 @@ export function largeBlast(tileMapGrid: TileMap2D,
                     mapAccessCount: prevTileX !== tileX || prevTileZ !== tileZ ? 1 : 0,
                     source: {
                         key: sourceId,
-                        phase: `ray-${stepIndexThisRay++}`,
+                        phase: `ray-${yawSlices}`,
                         index: editIndex++
                     },
                     path: {
