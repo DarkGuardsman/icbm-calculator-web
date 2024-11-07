@@ -1,10 +1,11 @@
 import {createSlice, PayloadAction} from "@reduxjs/toolkit";
 import {RootState} from "../store";
-import {getLastValue, isDefined, sortNum} from "../../funcs/Helpers";
+import {addNum, firstDefined, isDefined, sortNum, subtractNum} from "../../funcs/Helpers";
 import MapSimEntry2D from "../../api/MapSimEntry2D";
-import Map2D, {initEdits, SimEntryMap2D, TileMap2D} from "../../api/Map2D";
+import Map2D, {initEdits, SimEntryMap2D} from "../../api/Map2D";
 import PathData2D from "../../api/PathData2D";
-import {addSimEntry, getTileData, loopMapEntries, setTileData} from "../../funcs/TileFuncs";
+import {addSimEntry, getTileGridData, loopMapEntries, setTileData} from "../../funcs/TileFuncs";
+import {TileMap2D, TileMap2DData} from "../../api/TileMap2D";
 
 export interface TileMapState {
     /** Tiles to render on the grid */
@@ -148,7 +149,7 @@ export const tileMapSlice = createSlice({
             }
         },
         selectNextEdit: (state) => {
-            if(state.edits.currentIndex < state.edits.maxIndex) {
+            if (state.edits.currentIndex < state.edits.maxIndex) {
                 updateEditIndex(state, state.edits.currentIndex + 1);
             }
         },
@@ -215,9 +216,9 @@ function clearEditData(state: TileMapState) {
 }
 
 function applyEditMap(state: TileMapState, editMap: SimEntryMap2D) {
-    state.tiles = mergeEdits<number>(state.tiles, editMap,
+    state.tiles = mergeEdits(state.tiles, editMap,
         (edit) => isDefined(edit?.edit?.newTile),
-        (edits) => getLastValue(edits, (edit) => edit?.edit?.newTile)
+        (edits) => mergeDownTileData(edits)
     );
 
     state.paths = collectPaths(state.paths, editMap);
@@ -226,6 +227,68 @@ function applyEditMap(state: TileMapState, editMap: SimEntryMap2D) {
         (edit) => isDefined(edit?.meta?.path),
         (edits, prev) => (prev ?? 0) + edits.filter(e => isDefined(e.meta.path)).length
     );
+}
+
+function mergeDownTileData(edits: MapSimEntry2D[]): TileMap2DData | undefined {
+    if (!isDefined(edits) || edits.length === 0) {
+        return undefined;
+    }
+    return edits
+        .map(e => e?.edit)
+        .filter(e => isDefined(e))
+        .reduce((currentEdit, nextEdit) => {
+            const nextValue = nextEdit?.newTile;
+            if (!isDefined(nextValue)) {
+                return currentEdit;
+            }
+            else if(!isDefined(currentEdit))
+            {
+                return {};
+            }
+            else if(!isDefined(currentEdit?.newTile)) {
+                currentEdit.newTile = {};
+            }
+
+            // Case 1 - id changed >> clear data and set new id
+            // Case 2 - id is empty >> do nothing, may be an attribute value change only (ex: remove energy)
+            if(isDefined(nextValue.tile) && currentEdit.newTile.tile !== nextValue.tile) {
+                currentEdit.newTile.tile = nextValue.tile ?? currentEdit.newTile.tile;
+                currentEdit.newTile.data = {};
+                return currentEdit;
+            }
+            // Case 3 - current id is empty >> do nothing, attributes require tiles
+            else if(!isDefined(currentEdit.newTile.tile)) {
+                console.error('Attempted to apply attributes to a null tile id.', nextEdit, edits);
+                return currentEdit;
+            }
+
+            // Merge tile data if our ids match
+            const nextData = nextValue.data;
+            if(isDefined(nextData)) {
+                const currentData = currentEdit.newTile.data;
+                if(!isDefined(currentData)) {
+                    currentEdit.newTile.data = {...nextValue.data};
+                    return currentEdit;
+                }
+
+                currentData.facing = nextValue?.data?.facing ?? currentData.facing;
+
+                if(nextEdit?.action === 'add') {
+                    currentData.energyHeat = addNum(currentData.energyHeat, nextData?.energyHeat);
+                    currentData.energyPower = addNum(currentData.energyPower, nextData?.energyPower);
+                }
+                else if(nextEdit?.action === 'subtract') {
+                    currentData.energyHeat = subtractNum(currentData.energyHeat, nextData?.energyHeat);
+                    currentData.energyPower = subtractNum(currentData.energyPower, nextData?.energyPower);
+                }
+                else {
+                    currentData.energyHeat = firstDefined(currentData.energyHeat, nextData?.energyHeat);
+                    currentData.energyPower = firstDefined(currentData.energyPower, nextData?.energyPower);
+                }
+            }
+
+            return currentEdit;
+        }, {})?.newTile;
 }
 
 function collectPaths(existingPaths: PathData2D[], editMap: SimEntryMap2D) {
@@ -272,7 +335,7 @@ function mergeEdits<T>(oldMap: Map2D<T>, editMap: SimEntryMap2D, validator: (edi
 
             Object.keys(edits[y]).forEach(xKey => {
                 const x = xKey as unknown as number;
-                const tileSimEntries = getTileData(x, y, editMap)?.filter((e) => validator(e));
+                const tileSimEntries = getTileGridData(x, y, editMap)?.filter((e) => validator(e));
                 if (isDefined(tileSimEntries) && tileSimEntries.length > 0) {
                     const valueToSet = dataAccessor(tileSimEntries, tiles[y][x]);
                     if (isDefined(valueToSet)) {

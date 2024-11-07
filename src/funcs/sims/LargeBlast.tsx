@@ -4,10 +4,11 @@ import {
     TestArgValues,
     TestTypeEntry
 } from "../../tools/selector/simulation/SimulationSelector";
-import {getExplosiveResistance, TILE_AIR, TILE_VOID, TileData} from "../../common/Tiles";
-import {initEdits, SimEntryMap2D, TileMap2D} from "../../api/Map2D";
+import {getExplosiveResistance, TILE_AIR, TILE_VOID, Tile} from "../../common/Tiles";
+import {initEdits, SimEntryMap2D} from "../../api/Map2D";
 import {incrementSimEdit} from "../../tools/map/MapToolPage";
-import {addSimEntry, getTile} from "../TileFuncs";
+import {addSimEntry, cloneTileData, getTile, getTileGridData} from "../TileFuncs";
+import {TileMap2D} from "../../api/TileMap2D";
 
 
 export function largeBlast(tileMapGrid: TileMap2D,
@@ -68,15 +69,15 @@ export function largeBlast(tileMapGrid: TileMap2D,
             //Consume power per loop
             powerForRay -= stepCost;
 
-            let tile: TileData = TILE_VOID;
+            let tileObj: Tile = TILE_VOID;
             let cost: number = 0;
             let willBreak = false;
 
             // Alg tries to run 1 edit per block per ray.
             if (prevTileX !== tileX || prevTileZ !== tileZ) {
-                tile = getTile(tileX, tileZ, tileMapGrid);
-                cost = getExplosiveResistance(tile);
-                willBreak = tile !== TILE_AIR && tile.hardness >= 0 && powerForRay - cost >= 0;
+                tileObj = getTile(tileX, tileZ, tileMapGrid);
+                cost = getExplosiveResistance(tileObj);
+                willBreak = tileObj !== TILE_AIR && tileObj.hardness >= 0 && powerForRay - cost >= 0;
             }
 
             addSimEntry(edits, {
@@ -84,8 +85,11 @@ export function largeBlast(tileMapGrid: TileMap2D,
                 y: tileZ,
                 index: incrementSimEdit(),
                 edit: !willBreak ? undefined : {
-                    newTile: TILE_AIR.index,
-                    oldTile: tile.index
+                    action: 'override',
+                    newTile: {
+                        tile: TILE_AIR.index
+                    },
+                    oldTile: cloneTileData(getTileGridData(tileX, tileZ, tileMapGrid))
                 },
                 meta: {
                     mapAccessCount: prevTileX !== tileX || prevTileZ !== tileZ ? 1 : 0,

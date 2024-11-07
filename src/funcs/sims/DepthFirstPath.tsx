@@ -3,13 +3,14 @@ import {
     TestArgValues,
     TestTypeEntry
 } from "../../tools/selector/simulation/SimulationSelector";
-import {initEdits, SimEntryMap2D, TileMap2D} from "../../api/Map2D";
+import {initEdits, SimEntryMap2D} from "../../api/Map2D";
 import {isDefined, valueOr} from "../Helpers";
 import {addSimEntry, map2DContainsPos} from "../TileFuncs";
 import {incrementSimEdit} from "../../tools/map/MapToolPage";
 import Pos2D from "../../api/Pos2D";
-import {SIDES_2D} from "../../common/Consts";
 import {addPos2D, pos2DEquals} from "../../common/Pos2DHelpers";
+import {TileMap2D} from "../../api/TileMap2D";
+import {SIDES_2D} from "../../common/Side2D";
 
 interface PathStep extends Pos2D {
     step: number;

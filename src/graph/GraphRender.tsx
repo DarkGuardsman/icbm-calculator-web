@@ -1,13 +1,14 @@
 import React, {useEffect, useRef} from 'react';
-import {TileData} from "../common/Tiles";
+import {Tile} from "../common/Tiles";
 import {CHUNK_SIZE} from "../common/Consts";
 import {useSelector} from "react-redux";
 import {selectPathHeat, selectPaths, selectTiles} from "../data/map/tileMap";
-import Map2D, {TileMap2D} from "../api/Map2D";
+import Map2D from "../api/Map2D";
 import PathData2D from "../api/PathData2D";
-import {getTile, getTileData} from "../funcs/TileFuncs";
+import {getTile, getTileGridData} from "../funcs/TileFuncs";
 import {isDefined, sortNum} from "../funcs/Helpers";
 import {pos2DEquals} from "../common/Pos2DHelpers";
+import {TileMap2D} from "../api/TileMap2D";
 
 export interface GraphPaperProps {
 
@@ -77,7 +78,7 @@ function drawTiles(ctx: CanvasRenderingContext2D, width: number, height: number,
     }
 }
 
-function drawTile(ctx: CanvasRenderingContext2D, x: number, y: number, gridRenderSize: number, tile: TileData) {
+function drawTile(ctx: CanvasRenderingContext2D, x: number, y: number, gridRenderSize: number, tile: Tile) {
     ctx.fillStyle = tile.color;
     ctx.fillRect(
         x * gridRenderSize,
@@ -252,7 +253,7 @@ function drawHeatMap(ctx: CanvasRenderingContext2D, width: number, height: numbe
     }
     for (let y = heatMap.start.y; y <= heatMap.end.y; y++) {
         for (let x = heatMap.start.x; x <= heatMap.end.x; x++) {
-            const data = getTileData(x, y, heatMap);
+            const data = getTileGridData(x, y, heatMap);
             if (isDefined(data) && data > 0) {
                 drawHeatTile(ctx, x, y, gridRenderSize, data, range.max);
             }

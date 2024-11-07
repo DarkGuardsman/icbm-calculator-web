@@ -5,14 +5,15 @@ import {TILE_AIR, TILE_SET} from "../../../common/Tiles";
 import {TNT_SIM_ENTRY} from "../../../funcs/sims/TNTBlast";
 import {useDispatch, useSelector} from "react-redux";
 import {applySimEntries, selectTiles} from "../../../data/map/tileMap";
-import {initEdits, SimEntryMap2D, TileMap2D} from "../../../api/Map2D";
+import {initEdits, SimEntryMap2D} from "../../../api/Map2D";
 import {incrementSimEdit} from "../../map/MapToolPage";
-import {addSimEntry} from "../../../funcs/TileFuncs";
+import {addSimEntry, cloneTileData, getTileGridData} from "../../../funcs/TileFuncs";
 import ValueDefined from "../../../components/ValueDefined";
 import SimulationArgsPanel from "./args/panel/SimulationArgsPanel";
 import {NUKE_SIM_ENTRY, SONIC_ENTRY, THERMOBARIC_ENTRY} from "../../../funcs/sims/LargeBlast";
 import {ANTIMATTER_ENTRY} from "../../../funcs/sims/AntimatterBlast";
 import {DEPTH_FIRST_EXPAND} from "../../../funcs/sims/DepthFirstPath";
+import {TileMap2D} from "../../../api/TileMap2D";
 
 export interface TestArgs {
     tabs: TestArgTab[];
@@ -65,7 +66,7 @@ const testOptions: TestTypeEntry[] = [
         id: "random:fill",
         description: "Fills entire map, mostly exists for testing the runtime",
         args: undefined,
-        runner: (props: SimulationSelectorProps, _: TileMap2D, applyEdits: (edits: SimEntryMap2D) => void) => {
+        runner: (props: SimulationSelectorProps, tileMap2D: TileMap2D, applyEdits: (edits: SimEntryMap2D) => void) => {
             const edits: SimEntryMap2D = initEdits();
             const sourceId = `random:fill-${Date.now()}`;
             let editIndex = 0;
@@ -83,7 +84,11 @@ const testOptions: TestTypeEntry[] = [
                             x,
                             y,
                             edit: {
-                                newTile: tileToUse?.index === undefined ? TILE_AIR.index : tileToUse.index,
+                                action: 'override',
+                                newTile:  {
+                                    tile: tileToUse?.index === undefined ? TILE_AIR.index : tileToUse.index
+                                },
+                                oldTile: cloneTileData(getTileGridData(x, y, tileMap2D))
                             },
                             index: incrementSimEdit(),
                             meta: {

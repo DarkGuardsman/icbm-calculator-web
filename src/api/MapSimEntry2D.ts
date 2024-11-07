@@ -1,5 +1,6 @@
 import PathData2D from "./PathData2D";
 import EditSource from "./EditSource";
+import {TileMap2DData} from "./TileMap2D";
 
 /**
  * Instance of an action taken in the simulation. Actions are not always changed to the map space. Often
@@ -16,13 +17,28 @@ export default interface MapSimEntry2D {
     /** nth entry since simulation started */
     index: number;
 
-    /** Defined if an edit should be done */
+    /**
+     * Edit to be applied, try to apply only 1 attribute set at a time. This will help track changes
+     * better and show actions being taken. Especially in events were energy values are being changed.
+     *
+     * Exception to this is if previous value is being replaced completely. Such as when a tile is placed into
+     * the world.
+     */
     edit? : {
+        /**
+         * How to apply the edit to previous edit.
+         *
+         * 'add' and 'subtract' only works with numeric fields
+         *
+         * 'undefined' will be considered 'override'
+         * */
+        action?: 'add' | 'subtract' | 'override';
+
         /** ID of the tile to place. Required to apply change, leave off to pass through pathing data */
-        newTile?: number;
+        newTile?: TileMap2DData;
 
         /** ID of the tile previously */
-        oldTile?: number;
+        oldTile?: TileMap2DData;
     }
 
     /** Information about why/how the edit was made */

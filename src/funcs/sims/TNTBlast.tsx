@@ -4,10 +4,11 @@ import {
     TestArgValues,
     TestTypeEntry
 } from "../../tools/selector/simulation/SimulationSelector";
-import {getExplosiveResistance, TILE_AIR} from "../../common/Tiles";
-import {initEdits, SimEntryMap2D, TileMap2D} from "../../api/Map2D";
+import {getExplosiveResistance, isAir, TILE_AIR} from "../../common/Tiles";
+import {initEdits, SimEntryMap2D} from "../../api/Map2D";
 import {incrementSimEdit} from "../../tools/map/MapToolPage";
-import {addSimEntry, getTile} from "../TileFuncs";
+import {addSimEntry, cloneTileData, getTile, getTileGridData} from "../TileFuncs";
+import {TileMap2D} from "../../api/TileMap2D";
 
 export interface TNTBlastConfig {
     size?: number;
@@ -78,13 +79,14 @@ export function tntBlast(cx: number, cz: number,
                     const tileX = Math.floor(x);
                     const tileY = Math.floor(z);
 
-                    const tile = getTile(tileX, tileY, tileMapGrid);
+                    const tileData = getTileGridData(tileX, tileY, tileMapGrid);
+                    const tileObj = getTile(tileX, tileY, tileMapGrid);
 
-                    const explosiveResistance = getExplosiveResistance(tile);
+                    const explosiveResistance = getExplosiveResistance(tileObj);
 
                     let cost = 0;
 
-                    if (tile !== TILE_AIR) {
+                    if (!isAir(tileObj)) {
                         // min energy is likely to offset zero hardness blocks like tall grass
                         // scaleEnergyCost is likely the same value as stepSize. Both are 0.3~ in the code.
                         //              Given we step 0.3 we hit the same both per ray on average 3 times
@@ -98,9 +100,12 @@ export function tntBlast(cx: number, cz: number,
                         x: tileX,
                         y: tileY,
                         index: incrementSimEdit(),
-                        edit: tile === TILE_AIR ? undefined : {
-                            newTile: TILE_AIR.index,
-                            oldTile: tile.index
+                        edit: isAir(tileObj) ? undefined : {
+                            action: 'override',
+                            newTile: {
+                                tile: TILE_AIR.index
+                            },
+                            oldTile: cloneTileData(tileData)
                         },
                         meta: {
                             mapAccessCount: 1,

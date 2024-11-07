@@ -1,7 +1,8 @@
-import Map2D, {SimEntryMap2D, TileMap2D} from "../api/Map2D";
+import Map2D, {SimEntryMap2D} from "../api/Map2D";
 import MapSimEntry2D from "../api/MapSimEntry2D";
 import {isDefined, valueOr} from "./Helpers";
 import {TILE_AIR, TILE_ID_TO_OBJ} from "../common/Tiles";
+import {TileMap2D, TileMap2DData} from "../api/TileMap2D";
 
 /**
  * Adds an edit to the map via mutations... isn't state update safe
@@ -58,7 +59,7 @@ export function setTileData<T>(x: number, y: number, data: T, map: Map2D<T>) {
     };
 }
 
-export function getTileData<T>(x: number, y: number, grid: Map2D<T>) {
+export function getTileGridData<T>(x: number, y: number, grid: Map2D<T>) {
     if (isDefined(grid.data[y])) {
         return grid.data[y][x];
     }
@@ -67,13 +68,22 @@ export function getTileData<T>(x: number, y: number, grid: Map2D<T>) {
 
 export function getTileId(x: number, y: number, grid: TileMap2D): number {
     if (isDefined(grid.data[y])) {
-        return valueOr(grid.data[y][x], TILE_AIR.index);
+        return valueOr(grid.data[y][x]?.tile, TILE_AIR.index);
     }
     return TILE_AIR.index;
 }
 
 export function getTile(x: number, y: number, grid: TileMap2D) {
     return TILE_ID_TO_OBJ[getTileId(x, y, grid)];
+}
+
+export function cloneTileData(tile: TileMap2DData | undefined): TileMap2DData | undefined {
+    return tile ? {
+        ...tile,
+        data: tile.data ? {
+            ...tile.data
+        }: undefined
+    }: undefined
 }
 
 /**
@@ -100,7 +110,7 @@ export function loopMapEntries<T>(map: Map2D<T>, each: (value: T) => void) {
             const y = yKey as unknown as number;
             Object.keys(entryData[y]).forEach(xKey => {
                 const x = xKey as unknown as number;
-                const value = getTileData(x, y, map);
+                const value = getTileGridData(x, y, map);
                 if (isDefined(value)) {
                     each(value);
                 }

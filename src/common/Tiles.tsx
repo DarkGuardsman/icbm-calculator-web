@@ -1,4 +1,4 @@
-export interface TileData {
+export interface Tile {
     key: string;
     index: number;
     color: string;
@@ -11,7 +11,7 @@ export interface TileData {
 
 // TODO load from JSON
 //      move to react context
-export const TILE_SET: TileData[] = [
+export const TILE_SET: Tile[] = [
     {
         key: 'void',
         color: 'rgba(0,0,0,0.21)',
@@ -84,17 +84,21 @@ export const TILE_SET: TileData[] = [
     ));
 export const TILE_IDS: number[] = TILE_SET.map(tile => tile.index);
 
-export const TILE_ID_TO_OBJ: { [key: number]: TileData } = {};
+export const TILE_ID_TO_OBJ: { [key: number]: Tile } = {};
 TILE_SET.forEach(entry => TILE_ID_TO_OBJ[entry.index] = entry);
 
-export const TILE_KEY_TO_OBJ: { [key: string]: TileData } = {};
+export const TILE_KEY_TO_OBJ: { [key: string]: Tile } = {};
 TILE_SET.forEach(entry => TILE_KEY_TO_OBJ[entry.key] = entry);
 
 export const TILE_AIR = TILE_KEY_TO_OBJ['minecraft:air'];
 export const TILE_VOID = TILE_KEY_TO_OBJ['void'];
 
-export function getExplosiveResistance(tile: TileData): number {
+export function getExplosiveResistance(tile: Tile): number {
     // Will not understand why mojang sets a value for resistance just to divide it by 5
     return tile.resistance / 5;
+}
+
+export function isAir(tile: Tile | undefined) {
+    return tile?.index === TILE_AIR.index
 }
 

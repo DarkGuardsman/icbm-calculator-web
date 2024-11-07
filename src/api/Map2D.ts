@@ -7,7 +7,6 @@ export default interface Map2D<T> {
     end: Pos2D;
 }
 
-export interface TileMap2D extends Map2D<number> {}
 export interface SimEntryMap2D extends Map2D<SimEntry2D[]> {}
 
 export function initEdits(): SimEntryMap2D {

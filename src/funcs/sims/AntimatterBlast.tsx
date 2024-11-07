@@ -1,14 +1,15 @@
-import {sortNum, valueOr} from "../Helpers";
+import {isDefined, sortNum, valueOr} from "../Helpers";
 import {
     SimulationSelectorProps,
     TestArgValues,
     TestTypeEntry
 } from "../../tools/selector/simulation/SimulationSelector";
-import {TILE_ID_TO_OBJ, TILE_VOID, TileData} from "../../common/Tiles";
-import {initEdits, SimEntryMap2D, TileMap2D} from "../../api/Map2D";
+import {TILE_ID_TO_OBJ, TILE_VOID} from "../../common/Tiles";
+import {initEdits, SimEntryMap2D} from "../../api/Map2D";
 import {incrementSimEdit} from "../../tools/map/MapToolPage";
-import {addSimEntry, getTile} from "../TileFuncs";
+import {addSimEntry, cloneTileData, getTileGridData} from "../TileFuncs";
 import MapSimEntry2D from "../../api/MapSimEntry2D";
+import {TileMap2D} from "../../api/TileMap2D";
 
 
 export function antimatterBlast(tileMapGrid: TileMap2D,
@@ -40,7 +41,7 @@ export function antimatterBlast(tileMapGrid: TileMap2D,
             const tileX = Math.floor(centerX) + dx;
             const tileZ = Math.floor(centerZ) + dz;
 
-            const tile: TileData = getTile(tileX, tileZ, tileMapGrid);
+            const tile = getTileGridData(tileX, tileZ, tileMapGrid);
 
             const  radiusSQ = size * size;
             const distanceSQ = dx * dx + dz * dz;
@@ -84,8 +85,11 @@ export function antimatterBlast(tileMapGrid: TileMap2D,
                     y: tileZ,
                     index: -1,
                     edit: {
-                        newTile: TILE_VOID.index,
-                        oldTile: tile.index
+                        action: 'override',
+                        newTile: {
+                            tile: TILE_VOID.index
+                        },
+                        oldTile: cloneTileData(tile)
                     },
                     meta: {
                         mapAccessCount: 1,
@@ -115,7 +119,7 @@ export function antimatterBlast(tileMapGrid: TileMap2D,
     });
 
     // Remove fluids first
-    collectedBlocks.filter(b => b.edit?.oldTile !== undefined && isFluid(b.edit.oldTile)).forEach(b => {
+    collectedBlocks.filter(b => b.edit?.oldTile !== undefined && isFluid(b.edit.oldTile?.tile)).forEach(b => {
         b.index = incrementSimEdit();
         b.meta.source.phase = 'fluids';
         b.meta.source.index = editIndex++;
@@ -123,7 +127,7 @@ export function antimatterBlast(tileMapGrid: TileMap2D,
     });
 
     // Remove others last
-    collectedBlocks.filter(b => b.edit?.oldTile !== undefined && !isFluid(b.edit.oldTile)).forEach(b => {
+    collectedBlocks.filter(b => b.edit?.oldTile !== undefined && !isFluid(b.edit.oldTile?.tile)).forEach(b => {
         b.index = incrementSimEdit();
         b.meta.source.phase = 'solid';
         b.meta.source.index = editIndex++;
@@ -134,8 +138,8 @@ export function antimatterBlast(tileMapGrid: TileMap2D,
     applyEdits(edits);
 }
 
-function isFluid(id: number) {
-    return TILE_ID_TO_OBJ[id].isFluid || TILE_ID_TO_OBJ[id].isGravity;
+function isFluid(id: number | undefined) {
+    return !isDefined(id) || TILE_ID_TO_OBJ[id].isFluid || TILE_ID_TO_OBJ[id].isGravity;
 }
 
 function shouldEditPos(x: number, z: number, size: number, feathering: number) {

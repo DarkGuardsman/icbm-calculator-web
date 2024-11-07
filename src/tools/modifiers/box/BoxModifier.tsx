@@ -5,7 +5,7 @@ import ModifierCard from "../card/ModifierCard";
 import Select, {SingleValue} from "react-select";
 import styles from "./BoxModifier.module.css"
 import {CHUNK_SIZE} from "../../../common/Consts";
-import {TILE_AIR, TILE_ID_TO_OBJ, TILE_SET, TileData} from "../../../common/Tiles";
+import {TILE_AIR, TILE_ID_TO_OBJ, TILE_SET, Tile} from "../../../common/Tiles";
 
 export interface BoxModifierProps {
     index: number;
@@ -44,7 +44,7 @@ export default function BoxModifier(props: BoxModifierProps): React.JSX.Element 
         setValue({...modifier.args, tiles});
     };
 
-    const setTileId = (tile: SingleValue<TileData>, tileIndex: number) => {
+    const setTileId = (tile: SingleValue<Tile>, tileIndex: number) => {
         const tiles = [...modifier.args.tiles];
         tiles[tileIndex] = {
             ...tiles[tileIndex],
@@ -105,8 +105,8 @@ export default function BoxModifier(props: BoxModifierProps): React.JSX.Element 
                             <div className={styles.tileSelect}>
                                 <Select
                                     options={TILE_SET}
-                                    getOptionLabel={(value: TileData) => `[${value.index}] ${value.key}`}
-                                    getOptionValue={(tile: TileData) => tile.key}
+                                    getOptionLabel={(value: Tile) => `[${value.index}] ${value.key}`}
+                                    getOptionValue={(tile: Tile) => tile.key}
                                     placeholder={"Select"}
                                     onChange={(newValue) => setTileId(newValue, index)}
                                     value={TILE_ID_TO_OBJ[tile.id]}
