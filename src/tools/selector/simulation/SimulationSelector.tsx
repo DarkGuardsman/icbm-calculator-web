@@ -14,6 +14,7 @@ import {NUKE_SIM_ENTRY, SONIC_ENTRY, THERMOBARIC_ENTRY} from "../../../funcs/sim
 import {ANTIMATTER_ENTRY} from "../../../funcs/sims/AntimatterBlast";
 import {DEPTH_FIRST_EXPAND} from "../../../funcs/sims/DepthFirstPath";
 import {TileMap2D} from "../../../api/TileMap2D";
+import {EMP_LOGIC_V6_4_1} from "../../../funcs/sims/EmpBlast";
 
 export interface TestArgs {
     tabs: TestArgTab[];
@@ -57,6 +58,7 @@ export interface TestTypeEntry {
 
 const testOptions: TestTypeEntry[] = [
     TNT_SIM_ENTRY,
+    EMP_LOGIC_V6_4_1,
     SONIC_ENTRY,
     THERMOBARIC_ENTRY,
     NUKE_SIM_ENTRY,
