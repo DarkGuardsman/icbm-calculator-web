@@ -45,12 +45,7 @@ export interface Tile {
 // TODO load from JSON
 //      move to react context
 export const TILE_SET: Tile[] = [
-    {
-        key: 'void',
-        color: 'rgba(0,0,0,0.21)',
-        resistance: 0,
-        hardness: 0
-    },
+
     {
         key: 'minecraft:air',
         color: 'rgb(146,245,243, 0.1)',
@@ -149,6 +144,12 @@ export const TILE_SET: Tile[] = [
     },
 
     // Custom tiles
+    {
+        key: 'void',
+        color: 'rgba(0,0,0,0.21)',
+        resistance: 0,
+        hardness: 0
+    },
     {
         key: 'battery',
         color: 'rgb(80,78,76)',
