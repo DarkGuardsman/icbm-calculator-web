@@ -47,6 +47,8 @@ export function tntBlast(cx: number, cz: number,
     for (let xs = 0; xs < raysX; ++xs) {
         //for (int ys = 0; ys < this.raysPerAxis; ++ys)
         for (let zs = 0; zs < raysY; ++zs) {
+            let prevX = cx;
+            let prevZ = cz;
             if (xs === 0 || xs === raysX - 1 || /*ys == 0 || ys == raysPerAxis - 1 ||*/ zs === 0 || zs === raysY - 1) {
                 //Step calculation, between -1 to 1 creating edge slices of a cube
                 let xStep = xs / (raysX - 1.0) * 2.0 - 1.0;
@@ -94,13 +96,13 @@ export function tntBlast(cx: number, cz: number,
                         radialEnergy -= cost;
                     }
 
-                    console.log(x, z, tileObj, cost, radialEnergy);
+                    const willEdit =  !isAir(tileObj) && radialEnergy >= 0
 
                     addSimEntry(edits, {
                         x: tileX,
                         y: tileY,
                         index: incrementSimEdit(),
-                        edit: isAir(tileObj) || radialEnergy < 0 ? undefined : {
+                        edit: !willEdit ? undefined : {
                             action: 'override',
                             newTile: {
                                 tile: TILE_AIR.index
@@ -116,12 +118,12 @@ export function tntBlast(cx: number, cz: number,
                             },
                             path: {
                                 start: {
-                                    x,
-                                    y: z
+                                    x: prevX,
+                                    y: prevZ
                                 },
                                 end: {
-                                    x: x + xStep * stepSize,
-                                    y: z + zStep * stepSize
+                                    x: x,
+                                    y: z
                                 },
                                 meta: {
                                     energyLeft: radialEnergy,
@@ -132,6 +134,8 @@ export function tntBlast(cx: number, cz: number,
                     });
 
 
+                    prevX = x;
+                    prevZ = z;
 
                     //Iterate location
                     x += xStep * stepSize;
