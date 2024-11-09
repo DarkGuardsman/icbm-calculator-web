@@ -126,6 +126,8 @@ export function tntBlast(cx: number, cz: number,
                                     y: z
                                 },
                                 meta: {
+                                    endType: radialEnergy > 0 ? (isAir(tileObj) ? 'continue' : 'collision') : 'done',
+                                    nodeType: willEdit ? 'action' : (isAir(tileObj)) ? 'ignore' : 'hit',
                                     energyLeft: radialEnergy,
                                     energyCost: cost + stepEnergy
                                 }
