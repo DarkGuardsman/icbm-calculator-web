@@ -1,13 +1,13 @@
 {
   "files": {
     "main.css": "/icbm-calculator-web/static/css/main.1d3170be.css",
-    "main.js": "/icbm-calculator-web/static/js/main.7c970464.js",
+    "main.js": "/icbm-calculator-web/static/js/main.b80186b6.js",
     "index.html": "/icbm-calculator-web/index.html",
     "main.1d3170be.css.map": "/icbm-calculator-web/static/css/main.1d3170be.css.map",
-    "main.7c970464.js.map": "/icbm-calculator-web/static/js/main.7c970464.js.map"
+    "main.b80186b6.js.map": "/icbm-calculator-web/static/js/main.b80186b6.js.map"
   },
   "entrypoints": [
     "static/css/main.1d3170be.css",
-    "static/js/main.7c970464.js"
+    "static/js/main.b80186b6.js"
   ]
 }
