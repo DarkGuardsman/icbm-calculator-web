@@ -1,4 +1,5 @@
 import {TileData} from "../api/TileMap2D";
+import {isDefined} from "../funcs/Helpers";
 
 export interface Tile {
     /**
@@ -56,27 +57,71 @@ export const TILE_SET: Tile[] = [
         resistance: 0,
         hardness: 0
     },
+
+    //TODO see what license requirements are needed to use https://github.com/Mojang/bedrock-samples/tree/main/resource_pack
+    //Pull from https://github.com/SerenaLynas/OpenPack when possible until we find a full set or online cache
     {
         key: 'minecraft:stone',
         color: 'rgb(168,172,172)',
         resistance: 10,
-        hardness: 1.5
+        hardness: 1.5,
+        images: [
+            {
+                size: 16,
+                src: 'minecraft/stone_16px.png',
+                credit: 'https://github.com/SerenaLynas/OpenPack/blob/master/assets/minecraft/textures/block/stone.png'
+            }
+        ]
+    },
+    {
+        key: 'minecraft:bedrock',
+        color: 'rgb(44,50,50)',
+        resistance: 6_000_000,
+        hardness: -1,
+        images: [
+            {
+                size: 16,
+                src: 'minecraft/bedrock_16px.png',
+                credit: 'https://github.com/SerenaLynas/OpenPack/blob/master/assets/minecraft/textures/block/bedrock.png'
+            }
+        ]
     },
     {
         key: 'minecraft:grass',
         color: 'rgb(30,96,30)',
-        hardness: 0.6
+        hardness: 0.6,
+        images: [
+            {
+                size: 16,
+                src: 'minecraft/grass_16px.png',
+                credit: 'https://github.com/SerenaLynas/OpenPack/blob/master/assets/minecraft/textures/block/grass_block_top.png'
+            }
+        ]
     },
     {
         key: 'minecraft:dirt',
         color: 'rgb(193,136,25)',
-        hardness: 0.5
+        hardness: 0.5,
+        images: [
+            {
+                size: 16,
+                src: 'minecraft/dirt_16px.png',
+                credit: 'https://github.com/SerenaLynas/OpenPack/blob/master/assets/minecraft/textures/block/dirt.png'
+            }
+        ],
     },
     {
         key: 'minecraft:sand',
         color: 'rgb(213,211,68)',
         hardness: 0.5,
-        isGravity: true
+        isGravity: true,
+        images: [
+            {
+                size: 16,
+                src: 'minecraft/sand_16px.png',
+                credit: 'https://github.com/SerenaLynas/OpenPack/blob/master/assets/minecraft/textures/block/sand.png'
+            }
+        ]
     },
     {
         key: 'minecraft:cobble',
@@ -102,14 +147,16 @@ export const TILE_SET: Tile[] = [
         isFluid: true,
         hardness: 100
     },
+
+    // Custom tiles
     {
-        key: 'machine:battery',
+        key: 'battery',
         color: 'rgb(80,78,76)',
         hardness: 10,
         images: [
             {
                 size: 8,
-                src: `${process.env.PUBLIC_URL}/assets/tiles/machine/battery_8px.png`
+                src: 'machine/battery_8px.png'
             }
         ],
         data: {
@@ -125,6 +172,7 @@ export const TILE_SET: Tile[] = [
             hardness: entry.hardness,
             isFluid: entry.isFluid ?? false,
             isGravity: entry.isGravity ?? false,
+            images: !isDefined(entry?.images) ? undefined : entry.images.map(i => ({...i, src: `${process.env.PUBLIC_URL}/assets/tiles/${i.src}`})),
             index
         }
     ));

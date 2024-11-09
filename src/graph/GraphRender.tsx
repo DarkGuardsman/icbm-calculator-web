@@ -112,20 +112,22 @@ function drawTile(ctx: CanvasRenderingContext2D,
                   x: number, y: number,
                   gridRenderSize: number, tile: Tile, images: ImageMap) {
 
-
-    if(gridRenderSize >= 8 && images[tile.key] && images[tile.key][8]) {
-        const image = images[tile.key][8];
-        const scaleX = gridRenderSize;
-        const scaleY = gridRenderSize;
-
-        console.log(scaleX, scaleY, image.x, image.y, image);
+    const imagesForTile = images[tile.key];
+    if(gridRenderSize >= 8 && imagesForTile) {
+        const sizesLargeToSmall = Object.keys(imagesForTile)
+            .map(i => i as unknown as number)
+            .sort((a, b) => sortNum(a, b))
+            .reverse();
+        const firstLargest: number | undefined = sizesLargeToSmall.find(i => i <= gridRenderSize);
+        const backupImage = images[tile.key][sizesLargeToSmall[sizesLargeToSmall.length - 1]];
+        const image = firstLargest ? images[tile.key][firstLargest] : backupImage;
 
         ctx.imageSmoothingEnabled = false;
         ctx.drawImage(image,
             x * gridRenderSize,
             y * gridRenderSize,
-            scaleX,
-            scaleY
+            gridRenderSize,
+            gridRenderSize
         );
         ctx.restore();
 
