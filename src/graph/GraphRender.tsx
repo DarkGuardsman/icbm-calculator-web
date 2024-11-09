@@ -46,7 +46,6 @@ export default function GraphPaper({
             tile.images?.forEach(imageData => {
                     const image = new Image(imageData.size, imageData.size);
                     image.onload = () => {
-                        console.log('Loaded', image.src);
                         setImages((prevState) => {
                             return {
                                 ...prevState,

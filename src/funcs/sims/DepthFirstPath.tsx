@@ -37,8 +37,6 @@ function doPath(tileMapGrid: TileMap2D,
     while (stack.length > 0) {
         const nextPos = depthFirst ? stack.shift(): stack.pop();
 
-        console.log(nextPos);
-
         if (!isDefined(nextPos)) {
             continue;
         }

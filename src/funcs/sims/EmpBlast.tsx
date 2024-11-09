@@ -1,14 +1,12 @@
-import {isDefined, sortNum, valueOr} from "../Helpers";
+import {isDefined, valueOr} from "../Helpers";
 import {
     SimulationSelectorProps,
     TestArgValues,
     TestTypeEntry
 } from "../../tools/selector/simulation/SimulationSelector";
-import {TILE_ID_TO_OBJ, TILE_VOID, Tile} from "../../common/Tiles";
 import {initEdits, SimEntryMap2D} from "../../api/Map2D";
 import {incrementSimEdit} from "../../tools/map/MapToolPage";
-import {addSimEntry, cloneTileData, getTile, getTileGridData} from "../TileFuncs";
-import MapSimEntry2D from "../../api/MapSimEntry2D";
+import {addSimEntry, cloneTileData, getTileGridData} from "../TileFuncs";
 import {TileMap2D, TileMapCell2D} from "../../api/TileMap2D";
 
 
