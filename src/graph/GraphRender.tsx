@@ -1,5 +1,5 @@
-import React, {useEffect, useRef} from 'react';
-import {Tile} from "../common/Tiles";
+import React, {useEffect, useRef, useState} from 'react';
+import {Tile, TILE_SET} from "../common/Tiles";
 import {CHUNK_SIZE} from "../common/Consts";
 import {useSelector} from "react-redux";
 import {selectPathHeat, selectPaths, selectTiles} from "../data/map/tileMap";
@@ -23,6 +23,12 @@ export interface GraphPaperProps {
     showGridLines: boolean;
 }
 
+interface ImageMap {
+    [key: string]: {
+        [size:number]: HTMLImageElement
+    }
+}
+
 export default function GraphPaper({
                                        gridSizeX, gridSizeY, gridRenderSize = 10,
                                        showTiles, showDebugLines, showHeatMap, showGridLines
@@ -32,6 +38,29 @@ export default function GraphPaper({
     const tiles = useSelector(selectTiles); //TODO decouple so we can reuse the grid render
     const paths = useSelector(selectPaths);
     const pathHeat = useSelector(selectPathHeat);
+
+    const [images, setImages] = useState<ImageMap>({});
+
+    useEffect(() => {
+        TILE_SET.forEach(tile => {
+            tile.images?.forEach(imageData => {
+                    const image = new Image(imageData.size, imageData.size);
+                    image.onload = () => {
+                        console.log('Loaded', image.src);
+                        setImages((prevState) => {
+                            return {
+                                ...prevState,
+                                [tile.key]: {
+                                    ...prevState[tile.key],
+                                    [imageData.size]: image
+                                }
+                            }
+                        });
+                    }
+                    image.src = imageData.src;
+                });
+        });
+    }, []);
 
     useEffect(() => {
         const canvas = canvasRef.current;
@@ -50,13 +79,13 @@ export default function GraphPaper({
         // TODO eventually draw deltas when we do change sets for faster render times
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         if (showTiles) {
-            drawTiles(ctx, width, height, gridRenderSize, tiles); //TODO make these render layers that can be added and removed by parent by passing in as functions
+            drawTiles(ctx, width, height, gridRenderSize, tiles, images); //TODO make these render layers that can be added and removed by parent by passing in as functions
         }
         if (showHeatMap) {
             drawHeatMap(ctx, width, height, gridRenderSize, pathHeat);
         }
 
-        if(showGridLines) {
+        if (showGridLines) {
             drawGrid(ctx, width, height, gridRenderSize);
         }
 
@@ -64,29 +93,53 @@ export default function GraphPaper({
             drawLines(ctx, width, height, gridRenderSize, paths);
         }
 
-    }, [canvasRef, gridSizeX, gridSizeY, gridRenderSize, tiles, paths, pathHeat, showTiles, showHeatMap, showDebugLines, showGridLines]);
+    }, [canvasRef, gridSizeX, gridSizeY, gridRenderSize, tiles, paths, pathHeat, showTiles, showHeatMap, showDebugLines, showGridLines, images]);
 
     return <canvas ref={canvasRef} width={gridSizeX * gridRenderSize} height={gridSizeY * gridRenderSize}/>;
 }
 
-function drawTiles(ctx: CanvasRenderingContext2D, width: number, height: number, gridRenderSize: number, tiles: TileMap2D) {
+function drawTiles(ctx: CanvasRenderingContext2D, width: number, height: number, gridRenderSize: number, tiles: TileMap2D, images: ImageMap) {
 
     for (let y = tiles.start.y; y <= tiles.end.y; y++) {
         for (let x = tiles.start.x; x <= tiles.end.x; x++) {
-            drawTile(ctx, x, y, gridRenderSize, getTile(x, y, tiles));
+            drawTile(ctx, width, height, x, y, gridRenderSize, getTile(x, y, tiles), images);
         }
     }
 }
 
-function drawTile(ctx: CanvasRenderingContext2D, x: number, y: number, gridRenderSize: number, tile: Tile) {
-    ctx.fillStyle = tile.color;
-    ctx.fillRect(
-        x * gridRenderSize,
-        y * gridRenderSize,
-        gridRenderSize,
-        gridRenderSize
-    );
-    ctx.restore();
+function drawTile(ctx: CanvasRenderingContext2D,
+                  width: number, height: number,
+                  x: number, y: number,
+                  gridRenderSize: number, tile: Tile, images: ImageMap) {
+
+
+    if(gridRenderSize >= 8 && images[tile.key] && images[tile.key][8]) {
+        const image = images[tile.key][8];
+        const scaleX = gridRenderSize;
+        const scaleY = gridRenderSize;
+
+        console.log(scaleX, scaleY, image.x, image.y, image);
+
+        ctx.imageSmoothingEnabled = false;
+        ctx.drawImage(image,
+            x * gridRenderSize,
+            y * gridRenderSize,
+            scaleX,
+            scaleY
+        );
+        ctx.restore();
+
+    }
+    else {
+        ctx.fillStyle = tile.color;
+        ctx.fillRect(
+            x * gridRenderSize,
+            y * gridRenderSize,
+            gridRenderSize,
+            gridRenderSize
+        );
+        ctx.restore();
+    }
 }
 
 function drawGrid(ctx: CanvasRenderingContext2D, width: number, height: number, gridRenderSize: number) {
@@ -128,7 +181,6 @@ function drawLines(ctx: CanvasRenderingContext2D, width: number, height: number,
     sortedLines.forEach((line) => {
 
 
-
         let renderScale = gridRenderSize;
         if (isDefined(line.meta.energyLeft) && isDefined(largestEnergy)) {
             const energyScale = 1 - Math.max(0, line.meta.energyLeft) / largestEnergy;
@@ -136,7 +188,7 @@ function drawLines(ctx: CanvasRenderingContext2D, width: number, height: number,
         }
 
         // Likely start point
-        if(pos2DEquals(line.end, line.start, 0.0001)) {
+        if (pos2DEquals(line.end, line.start, 0.0001)) {
             ctx.fillStyle = 'grey';
             ctx.fillRect(
                 line.start.x * gridRenderSize - dotSize * renderScale,
@@ -149,8 +201,7 @@ function drawLines(ctx: CanvasRenderingContext2D, width: number, height: number,
             ctx.arc(line.end.x * gridRenderSize, line.end.y * gridRenderSize, dotSize * renderScale * 0.8, 0, 2 * Math.PI);
             ctx.fillStyle = getNodeResultColor(line); //TODO generate random color per source phase and store in state
             ctx.fill();
-        }
-        else {
+        } else {
             const arrowSize = renderScale * dotSize * 3;
             const arrowLineEndOffset = arrowSize / 3;
             const lineWidth = lineSize * renderScale;
@@ -221,23 +272,20 @@ function drawLines(ctx: CanvasRenderingContext2D, width: number, height: number,
 }
 
 function getNodeResultColor(line: PathData2D) {
-    if(line.meta?.nodeType === 'hit') {
+    if (line.meta?.nodeType === 'hit') {
         return 'red';
-    }
-    else if(line.meta?.nodeType === 'action') {
+    } else if (line.meta?.nodeType === 'action') {
         return 'yellow';
     }
     return 'grey';
 }
 
 function getLineEndColor(line: PathData2D) {
-    if(line.meta?.endType === 'collision') {
+    if (line.meta?.endType === 'collision') {
         return 'red';
-    }
-    else if(line.meta?.endType === 'dead') {
+    } else if (line.meta?.endType === 'dead') {
         return 'black';
-    }
-    else if(line.meta?.endType === 'done') {
+    } else if (line.meta?.endType === 'done') {
         return 'blue';
     }
     return 'grey';
@@ -248,7 +296,7 @@ function drawHeatMap(ctx: CanvasRenderingContext2D, width: number, height: numbe
 
     const heatValues = Object.values(heatMap.data).flatMap(ySet => Object.values(ySet));
     const range = getNumberRangeExcludingOutliers(getUniqueNumbers(heatValues));
-    if(range.min === range.max) {
+    if (range.min === range.max) {
         return;
     }
     for (let y = heatMap.start.y; y <= heatMap.end.y; y++) {
@@ -317,7 +365,7 @@ function getUniqueNumbers(data: number[]) {
     return Array.from(heatSet);
 }
 
-function getNumberRangeExcludingOutliers(data: number[]): {min: number, max: number} {
+function getNumberRangeExcludingOutliers(data: number[]): { min: number, max: number } {
     if (data.length < 4) {
         return {
             min: Math.min(...data),

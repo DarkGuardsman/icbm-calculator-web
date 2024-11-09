@@ -5,7 +5,7 @@ import MapSimEntry2D from "../../api/MapSimEntry2D";
 import Map2D, {initEdits, SimEntryMap2D} from "../../api/Map2D";
 import PathData2D from "../../api/PathData2D";
 import {addSimEntry, getTileGridData, loopMapEntries, setTileData} from "../../funcs/TileFuncs";
-import {TileMap2D, TileMap2DData} from "../../api/TileMap2D";
+import {TileMap2D, TileMapCell2D} from "../../api/TileMap2D";
 
 export interface TileMapState {
     /** Tiles to render on the grid */
@@ -229,7 +229,7 @@ function applyEditMap(state: TileMapState, editMap: SimEntryMap2D) {
     );
 }
 
-function mergeDownTileData(edits: MapSimEntry2D[]): TileMap2DData | undefined {
+function mergeDownTileData(edits: MapSimEntry2D[]): TileMapCell2D | undefined {
     if (!isDefined(edits) || edits.length === 0) {
         return undefined;
     }
@@ -258,7 +258,7 @@ function mergeDownTileData(edits: MapSimEntry2D[]): TileMap2DData | undefined {
             }
             // Case 3 - current id is empty >> do nothing, attributes require tiles
             else if(!isDefined(currentEdit.newTile.tile)) {
-                console.error('Attempted to apply attributes to a null tile id.', nextEdit, edits);
+                console.error('Attempted to apply attributes to a null tile id.', currentEdit, nextEdit, edits);
                 return currentEdit;
             }
 

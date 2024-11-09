@@ -3,8 +3,8 @@ import GraphRender from "../../graph/GraphRender";
 import {useState} from "react";
 import styles from "./MapToolPage.module.css";
 import NumericIncrementer from "../../components/incrementer/NumericIncrementer";
-import {TILE_AIR} from "../../common/Tiles";
-import {fillTiles} from "../../funcs/TileFuncs";
+import {TILE_AIR, TILE_ID_TO_OBJ, TILE_SET} from "../../common/Tiles";
+import {cloneTileData, fillTiles, getTileGridData} from "../../funcs/TileFuncs";
 import BoxModifier, {IBoxGenerator, ITileGenData} from "../modifiers/box/BoxModifier";
 import {CHUNK_SIZE} from "../../common/Consts";
 import SimulationSelector from "../selector/simulation/SimulationSelector";
@@ -16,7 +16,8 @@ import {isDefined} from "../../funcs/Helpers";
 import {Timeline} from "./timeline/Timeline";
 
 let simEditIndex = 0;
-export function incrementSimEdit() :number {
+
+export function incrementSimEdit(): number {
     return simEditIndex++;
 }
 
@@ -50,7 +51,13 @@ export default function MapToolPage() {
             x, y,
             index: incrementSimEdit(),
             edit: {
-                newTile: TILE_AIR.index,
+                action: 'override',
+                newTile: {
+                    tile: TILE_AIR.index,
+                    data: {
+                        ...TILE_AIR.data
+                    }
+                }
             },
             meta: {
                 source: {
@@ -68,20 +75,29 @@ export default function MapToolPage() {
                 const possibleTiles = args.tiles;
 
                 editIndex = 0;
-                fillTiles(edits, args.x, args.y, args.width, args.height, (x, y) => ({
-                   x, y,
-                    index: incrementSimEdit(),
-                    edit: {
-                        newTile: getRandomTile(possibleTiles),
-                    },
-                    meta: {
-                       source: {
-                           key : `box-${mIndex}`,
-                           phase: "fill",
-                           index: editIndex++
-                       }
+                fillTiles(edits, args.x, args.y, args.width, args.height, (x, y) => {
+                    const tileId = getRandomTile(possibleTiles);
+                    const tile = TILE_ID_TO_OBJ[tileId];
+                    return {
+                        x, y,
+                        index: incrementSimEdit(),
+                        edit: {
+                            newTile: {
+                                tile: tile.index,
+                                data: {
+                                    ...tile.data
+                                }
+                            }
+                        },
+                        meta: {
+                            source: {
+                                key: `box-${mIndex}`,
+                                phase: "fill",
+                                index: editIndex++
+                            }
+                        }
                     }
-                }))
+                })
             }
         });
 

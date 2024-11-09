@@ -1,6 +1,6 @@
 import PathData2D from "./PathData2D";
 import EditSource from "./EditSource";
-import {TileMap2DData} from "./TileMap2D";
+import {TileMapCell2D} from "./TileMap2D";
 
 /**
  * Instance of an action taken in the simulation. Actions are not always changed to the map space. Often
@@ -35,10 +35,10 @@ export default interface MapSimEntry2D {
         action?: 'add' | 'subtract' | 'override';
 
         /** ID of the tile to place. Required to apply change, leave off to pass through pathing data */
-        newTile?: TileMap2DData;
+        newTile?: TileMapCell2D;
 
         /** ID of the tile previously */
-        oldTile?: TileMap2DData;
+        oldTile?: TileMapCell2D;
     }
 
     /** Information about why/how the edit was made */

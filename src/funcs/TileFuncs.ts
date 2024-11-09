@@ -2,7 +2,7 @@ import Map2D, {SimEntryMap2D} from "../api/Map2D";
 import MapSimEntry2D from "../api/MapSimEntry2D";
 import {isDefined, valueOr} from "./Helpers";
 import {TILE_AIR, TILE_ID_TO_OBJ} from "../common/Tiles";
-import {TileMap2D, TileMap2DData} from "../api/TileMap2D";
+import {TileMap2D, TileMapCell2D} from "../api/TileMap2D";
 
 /**
  * Adds an edit to the map via mutations... isn't state update safe
@@ -77,7 +77,7 @@ export function getTile(x: number, y: number, grid: TileMap2D) {
     return TILE_ID_TO_OBJ[getTileId(x, y, grid)];
 }
 
-export function cloneTileData(tile: TileMap2DData | undefined): TileMap2DData | undefined {
+export function cloneTileData(tile: TileMapCell2D | undefined): TileMapCell2D | undefined {
     return tile ? {
         ...tile,
         data: tile.data ? {

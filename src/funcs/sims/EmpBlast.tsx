@@ -9,7 +9,7 @@ import {initEdits, SimEntryMap2D} from "../../api/Map2D";
 import {incrementSimEdit} from "../../tools/map/MapToolPage";
 import {addSimEntry, cloneTileData, getTile, getTileGridData} from "../TileFuncs";
 import MapSimEntry2D from "../../api/MapSimEntry2D";
-import {TileMap2D, TileMap2DData} from "../../api/TileMap2D";
+import {TileMap2D, TileMapCell2D} from "../../api/TileMap2D";
 
 
 export function empOld(tileMapGrid: TileMap2D,
@@ -38,7 +38,7 @@ export function empOld(tileMapGrid: TileMap2D,
             const tileX = Math.floor(centerX) + dx;
             const tileZ = Math.floor(centerZ) + dz;
 
-            const gridData = getTileGridData<TileMap2DData>(tileX, tileZ, tileMapGrid);
+            const gridData = getTileGridData<TileMapCell2D>(tileX, tileZ, tileMapGrid);
             const willEmpTile = shouldEditPos(gridData);
 
             // Collect pathing as this is step 0
@@ -87,7 +87,7 @@ export function empOld(tileMapGrid: TileMap2D,
     applyEdits(edits);
 }
 
-function shouldEditPos(gridData: TileMap2DData | undefined) {
+function shouldEditPos(gridData: TileMapCell2D | undefined) {
     return isDefined(gridData?.data?.energyPower); //TODO change to a machine check and include tile replacement mechanic
 }
 
