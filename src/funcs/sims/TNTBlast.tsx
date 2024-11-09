@@ -91,16 +91,16 @@ export function tntBlast(cx: number, cz: number,
                         // scaleEnergyCost is likely the same value as stepSize. Both are 0.3~ in the code.
                         //              Given we step 0.3 we hit the same both per ray on average 3 times
                         cost = (explosiveResistance + minEnergyCost) * scaleEnergyCost;
-                        if ((radialEnergy - cost) > 0) {
-                            radialEnergy -= cost
-                        }
+                        radialEnergy -= cost;
                     }
+
+                    console.log(x, z, tileObj, cost, radialEnergy);
 
                     addSimEntry(edits, {
                         x: tileX,
                         y: tileY,
                         index: incrementSimEdit(),
-                        edit: isAir(tileObj) ? undefined : {
+                        edit: isAir(tileObj) || radialEnergy < 0 ? undefined : {
                             action: 'override',
                             newTile: {
                                 tile: TILE_AIR.index
@@ -124,12 +124,14 @@ export function tntBlast(cx: number, cz: number,
                                     y: z + zStep * stepSize
                                 },
                                 meta: {
-                                    energyLeft: radialEnergy - cost,
+                                    energyLeft: radialEnergy,
                                     energyCost: cost + stepEnergy
                                 }
                             }
                         }
-                    })
+                    });
+
+
 
                     //Iterate location
                     x += xStep * stepSize;
