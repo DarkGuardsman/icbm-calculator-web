@@ -25,9 +25,9 @@ export default function MapToolPage() {
 
     const dispatch = useDispatch();
 
-    const [sizeX, setSizeX] = useState(CHUNK_SIZE * 2);
-    const [sizeY, setSizeY] = useState(CHUNK_SIZE * 2);
-    const [renderSize, setRenderSize] = useState(20);
+    const [sizeX, setSizeX] = useState(CHUNK_SIZE);
+    const [sizeY, setSizeY] = useState(CHUNK_SIZE);
+    const [renderSize, setRenderSize] = useState(64);
 
     const [hasRun, setHasRun] = useState(false);
     const [showTiles, setShowTiles] = useState(true);
