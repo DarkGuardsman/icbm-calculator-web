@@ -163,6 +163,31 @@ export const TILE_SET: Tile[] = [
         data: {
             energyPower: 1_000
         }
+    },
+    {
+        key: 'wire',
+        color: 'rgb(62,58,58)',
+        hardness: 10,
+        images: [
+            {
+                size: 8,
+                src: 'machine/wire_8px.png'
+            }
+        ],
+        data: {
+            energyPower: 100
+        }
+    },
+    {
+        key: 'wire_damaged',
+        color: 'rgb(39,37,37)',
+        hardness: 10,
+        images: [
+            {
+                size: 8,
+                src: 'machine/wire_damaged_8px.png'
+            }
+        ]
     }
 ]
     .sort((a, b) => a.key.localeCompare(b.key))
@@ -188,6 +213,9 @@ TILE_SET.forEach(entry => TILE_KEY_TO_OBJ[entry.key] = entry);
 
 export const TILE_AIR = TILE_KEY_TO_OBJ['minecraft:air'];
 export const TILE_VOID = TILE_KEY_TO_OBJ['void'];
+
+export const TILE_WIRE = TILE_KEY_TO_OBJ['wire'];
+export const TILE_WIRE_DAMAGED = TILE_KEY_TO_OBJ['wire_damaged'];
 
 export function getExplosiveResistance(tile: Tile): number {
     // Will not understand why mojang sets a value for resistance just to divide it by 5
