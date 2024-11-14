@@ -24,22 +24,7 @@ export default interface MapSimEntry2D {
      * Exception to this is if previous value is being replaced completely. Such as when a tile is placed into
      * the world.
      */
-    edit? : {
-        /**
-         * How to apply the edit to previous edit.
-         *
-         * 'add' and 'subtract' only works with numeric fields
-         *
-         * 'undefined' will be considered 'override'
-         * */
-        action?: 'add' | 'subtract' | 'override';
-
-        /** ID of the tile to place. Required to apply change, leave off to pass through pathing data */
-        newTile?: TileMapCell2D;
-
-        /** ID of the tile previously */
-        oldTile?: TileMapCell2D;
-    }
+    edit? : MapSimEdit2D;
 
     /** Information about why/how the edit was made */
     meta: {
@@ -50,5 +35,22 @@ export default interface MapSimEntry2D {
         /** Information about path taken during this edit */
         path?: PathData2D;
     }
+}
+
+export interface MapSimEdit2D {
+    /**
+     * How to apply the edit to previous edit.
+     *
+     * 'add' and 'subtract' only works with numeric fields
+     *
+     * 'undefined' will be considered 'override'
+     * */
+    action?: 'add' | 'subtract' | 'override';
+
+    /** ID of the tile to place. Required to apply change, leave off to pass through pathing data */
+    newTile?: TileMapCell2D;
+
+    /** ID of the tile previously */
+    oldTile?: TileMapCell2D;
 }
 

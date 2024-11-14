@@ -7,7 +7,20 @@ import {
 import {initEdits, SimEntryMap2D} from "../../api/Map2D";
 import {incrementSimEdit} from "../../tools/map/MapToolPage";
 import {addSimEntry, cloneTileData, getTileGridData} from "../TileFuncs";
-import {TileMap2D, TileMapCell2D} from "../../api/TileMap2D";
+import {TileData, TileMap2D, TileMapCell2D} from "../../api/TileMap2D";
+import {Tile, TILE_ID_TO_OBJ, TILE_WIRE, TILE_WIRE_DAMAGED} from "../../common/Tiles";
+import {MapSimEdit2D} from "../../api/MapSimEntry2D";
+
+export interface TileReplacement {
+    input: {
+        tile: Tile,
+        data?: TileData
+    };
+    output: {
+        tile: Tile,
+        data?: TileData
+    };
+}
 
 
 export function empOld(tileMapGrid: TileMap2D,
@@ -18,6 +31,7 @@ export function empOld(tileMapGrid: TileMap2D,
     const centerX = valueOr<number>(args['x'] as number, 10);
     const centerZ = valueOr<number>(args['y'] as number, 10);
     const size = valueOr<number>(args['size'] as number, 55);
+    const replacements: TileReplacement[] = valueOr(args['tiles'] as TileReplacement[], []);
 
 
     ///========================================================
@@ -39,12 +53,25 @@ export function empOld(tileMapGrid: TileMap2D,
             const gridData = getTileGridData<TileMapCell2D>(tileX, tileZ, tileMapGrid);
             const willEmpTile = shouldEditPos(gridData);
 
-            // Collect pathing as this is step 0
-            addSimEntry(edits, {
-                x: tileX,
-                y: tileZ,
-                index: incrementSimEdit(),
-                edit: !willEmpTile ? undefined : {
+            const tileData = gridData?.tile ? TILE_ID_TO_OBJ[gridData?.tile]: undefined;
+            const replacement = replacements.find(r => r.input.tile === tileData);
+
+            let edit: MapSimEdit2D | undefined = undefined;
+
+            if(replacement) {
+                edit = {
+                    action: 'override',
+                    newTile: {
+                        tile: replacement.output.tile.index,
+                        data: !isDefined(replacement.output.data) ? undefined : {
+                           ...replacement.output.data
+                        }
+                    },
+                    oldTile: cloneTileData(gridData)
+                }
+            }
+            else if(willEmpTile) {
+                edit = {
                     action: 'override',
                     newTile: {
                         data: {
@@ -52,7 +79,16 @@ export function empOld(tileMapGrid: TileMap2D,
                         }
                     },
                     oldTile: cloneTileData(gridData)
-                },
+                }
+            }
+
+
+            // Collect pathing as this is step 0
+            addSimEntry(edits, {
+                x: tileX,
+                y: tileZ,
+                index: incrementSimEdit(),
+                edit: edit,
                 meta: {
                     mapAccessCount: 1,
                     source: {
@@ -108,6 +144,15 @@ export const EMP_LOGIC_V6_4_1: TestTypeEntry = {
                         args: ['size']
                     }
                 ]
+            },
+            {
+                label: "Advanced",
+                sections: [
+                    {
+                        label: "Replacements",
+                        args: ['tiles']
+                    }
+                ]
             }
         ],
         data: [
@@ -128,6 +173,19 @@ export const EMP_LOGIC_V6_4_1: TestTypeEntry = {
                 label: "Size (x2 - Box)",
                 type: "float",
                 default: 50
+            },
+            {
+                key: 'tiles',
+                label: "Replacements",
+                type: 'tileReplacements',
+                default: [{
+                    input: {
+                        tile: TILE_WIRE
+                    },
+                    output: {
+                        tile: TILE_WIRE_DAMAGED
+                    }
+                }]
             }
         ]
     }

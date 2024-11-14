@@ -37,7 +37,7 @@ export interface TestArg {
     /** Label to show users */
     label: string;
     /** Data type */
-    type: 'int' | 'float' | 'bool';
+    type: 'int' | 'float' | 'bool' | 'tileReplacements';
     /** Default value */
     default: any;
 }
