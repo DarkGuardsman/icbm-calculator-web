@@ -12,7 +12,7 @@ import {useDispatch} from "react-redux";
 import {applySimEntries, clearTiles} from "../../data/map/tileMap";
 import IMapModifier from "../modifiers/types";
 import {initEdits, SimEntryMap2D} from "../../api/Map2D";
-import {isDefined} from "../../funcs/Helpers";
+import {isDefined} from "../../funcs/helpers";
 import {Timeline} from "./timeline/Timeline";
 
 let simEditIndex = 0;

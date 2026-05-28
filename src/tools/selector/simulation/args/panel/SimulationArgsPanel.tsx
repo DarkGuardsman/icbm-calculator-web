@@ -1,5 +1,5 @@
 import React, {useEffect, useMemo, useState} from "react";
-import {isDefined} from "../../../../../funcs/Helpers";
+import {isDefined} from "../../../../../funcs/helpers";
 import {TestArg, TestArgValues, TestTypeEntry} from "../../SimulationSelector";
 import SimulationArgTab from "../tab/SimulationArgsTab";
 import styles from "./SimulationArgsPanel.module.css"

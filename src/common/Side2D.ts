@@ -1,5 +1,5 @@
 import Pos2D from "../api/Pos2D";
-import {isDefined} from "../funcs/Helpers";
+import {isDefined} from "../funcs/helpers";
 
 export type Side2D = 'north' | 'south' | 'west' | 'east';
 export interface SidePos2D extends Pos2D {

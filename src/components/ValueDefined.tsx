@@ -1,5 +1,5 @@
 import React from "react";
-import {isDefined} from "../funcs/Helpers";
+import {isDefined} from "../funcs/helpers";
 
 export interface ValueDefinedProps {
     value: any;

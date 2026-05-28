@@ -1,4 +1,4 @@
-import {isDefined, valueOr} from "../Helpers";
+import {isDefined, valueOr} from "../helpers";
 import {
     SimulationSelectorProps,
     TestArgValues,
@@ -38,7 +38,7 @@ export function empOld(tileMapGrid: TileMap2D,
     // Last updated: November 3rd, 2024 using 1.12.2-6.4.1 code githash: d9848cf98805d7ffe945d08ebef6718d0f1a08d0
     // This isn't a perfect replication as we can't 1:1 the code from 3D to 2D
 
-    const sourceId = `Antimatter-${Date.now()}`;
+    const sourceId = `EMP-${Date.now()}`;
     let editIndex = 0;
     const edits: SimEntryMap2D = initEdits();
 

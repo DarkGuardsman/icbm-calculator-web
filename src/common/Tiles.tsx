@@ -1,5 +1,5 @@
 import {TileData} from "../api/TileMap2D";
-import {isDefined} from "../funcs/Helpers";
+import {isDefined} from "../funcs/helpers";
 
 export interface Tile {
     /**

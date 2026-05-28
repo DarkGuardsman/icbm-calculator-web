@@ -3,7 +3,7 @@ import SimArgInt from "../../../args/int/SimArgInt";
 import SimArgFloat from "../../../args/float/SimArgFloat";
 import SimArgBool from "../../../args/bool/SimArgBool";
 import {TestArg, TestArgSection, TestArgValues} from "../../SimulationSelector";
-import {isDefined} from "../../../../../funcs/Helpers";
+import {isDefined} from "../../../../../funcs/helpers";
 import styles from "./SimulationArgsSection.module.css";
 
 export interface SimulationArgsSectionProps {

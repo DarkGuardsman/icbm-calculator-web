@@ -1,5 +1,5 @@
 import Pos2D from "../api/Pos2D";
-import {isDefined} from "../funcs/Helpers";
+import {isDefined} from "../funcs/helpers";
 
 export function addPos2D(a: Pos2D, b: Pos2D): Pos2D {
     return {

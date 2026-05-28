@@ -1,5 +1,5 @@
 import {useMemo} from "react";
-import {isDefined} from "../../funcs/Helpers";
+import {isDefined} from "../../funcs/helpers";
 
 export interface NumericIncrementerProps {
     value: number;

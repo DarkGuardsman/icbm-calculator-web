@@ -1,6 +1,6 @@
 import {createSlice, PayloadAction} from "@reduxjs/toolkit";
 import {RootState} from "../store";
-import {addNum, firstDefined, isDefined, sortNum, subtractNum} from "../../funcs/Helpers";
+import {addNum, firstDefined, isDefined, sortNum, subtractNum} from "../../funcs/helpers";
 import MapSimEntry2D from "../../api/MapSimEntry2D";
 import Map2D, {initEdits, SimEntryMap2D} from "../../api/Map2D";
 import PathData2D from "../../api/PathData2D";

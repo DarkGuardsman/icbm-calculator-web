@@ -6,7 +6,7 @@ import {selectPathHeat, selectPaths, selectTiles} from "../data/map/tileMap";
 import Map2D from "../api/Map2D";
 import PathData2D from "../api/PathData2D";
 import {getTile, getTileGridData} from "../funcs/TileFuncs";
-import {isDefined, sortNum} from "../funcs/Helpers";
+import {isDefined, sortNum} from "../funcs/helpers";
 import {pos2DEquals} from "../common/Pos2DHelpers";
 import {TileMap2D} from "../api/TileMap2D";
 

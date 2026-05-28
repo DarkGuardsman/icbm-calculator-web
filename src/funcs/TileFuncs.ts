@@ -1,6 +1,6 @@
 import Map2D, {SimEntryMap2D} from "../api/Map2D";
 import MapSimEntry2D from "../api/MapSimEntry2D";
-import {isDefined, valueOr} from "./Helpers";
+import {isDefined, valueOr} from "./helpers";
 import {TILE_AIR, TILE_ID_TO_OBJ} from "../common/Tiles";
 import {TileMap2D, TileMapCell2D} from "../api/TileMap2D";
 

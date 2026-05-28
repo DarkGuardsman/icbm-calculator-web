@@ -4,7 +4,7 @@ import {
     TestTypeEntry
 } from "../../tools/selector/simulation/SimulationSelector";
 import {initEdits, SimEntryMap2D} from "../../api/Map2D";
-import {isDefined, valueOr} from "../Helpers";
+import {isDefined, valueOr} from "../helpers";
 import {addSimEntry, map2DContainsPos} from "../TileFuncs";
 import {incrementSimEdit} from "../../tools/map/MapToolPage";
 import Pos2D from "../../api/Pos2D";
